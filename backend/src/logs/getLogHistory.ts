@@ -1,0 +1,37 @@
+import type { APIGatewayProxyHandler } from 'aws-lambda';
+import { getUserId } from '../shared/auth.js';
+import { keys, queryItems } from '../shared/dynamo.js';
+import { ok, badRequest, internalError } from '../shared/response.js';
+
+export const handler: APIGatewayProxyHandler = async (event) => {
+  try {
+    const userId = getUserId(event);
+    const logId = event.pathParameters?.logId;
+    if (!logId) return badRequest('logId is required');
+
+    const from = event.queryStringParameters?.from;
+    const to = event.queryStringParameters?.to;
+
+    let keyCondition = 'PK = :pk AND begins_with(SK, :prefix)';
+    const expressionValues: Record<string, unknown> = {
+      ':pk': keys.user(userId),
+      ':prefix': `LOG_ENTRY#${logId}#`,
+    };
+
+    if (from && to) {
+      keyCondition = 'PK = :pk AND SK BETWEEN :from AND :to';
+      expressionValues[':from'] = keys.logEntry(logId, from);
+      expressionValues[':to'] = keys.logEntry(logId, to);
+      delete expressionValues[':prefix'];
+    }
+
+    const items = await queryItems({
+      KeyConditionExpression: keyCondition,
+      ExpressionAttributeValues: expressionValues,
+    });
+    return ok(items);
+  } catch (err) {
+    console.error(err);
+    return internalError();
+  }
+};

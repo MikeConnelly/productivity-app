@@ -1,0 +1,113 @@
+import { useState } from 'react';
+import { X } from 'lucide-react';
+import type { Log } from '../../api/logs';
+
+const COLORS = ['#6366f1', '#ec4899', '#f59e0b', '#10b981', '#3b82f6', '#ef4444', '#8b5cf6', '#06b6d4'];
+const ICONS = ['📋', '🍽️', '😊', '😴', '💊', '🏃', '💧', '🧠', '📝', '❤️', '🌿', '⚡', '🎯', '🌙'];
+
+interface LogFormProps {
+  log?: Log;
+  onSave: (data: { name: string; color: string; icon: string }) => Promise<void>;
+  onClose: () => void;
+}
+
+export function LogForm({ log, onSave, onClose }: LogFormProps) {
+  const [name, setName] = useState(log?.name ?? '');
+  const [color, setColor] = useState(log?.color ?? '#6366f1');
+  const [icon, setIcon] = useState(log?.icon ?? '📋');
+  const [saving, setSaving] = useState(false);
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!name.trim()) return;
+    setSaving(true);
+    try {
+      await onSave({ name: name.trim(), color, icon });
+      onClose();
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  return (
+    <div className="fixed inset-0 bg-black/50 flex items-end md:items-center justify-center z-50 p-4">
+      <div className="bg-white rounded-2xl w-full max-w-md p-6">
+        <div className="flex items-center justify-between mb-5">
+          <h3 className="font-semibold text-gray-900 text-lg">
+            {log ? 'Edit Log' : 'New Log'}
+          </h3>
+          <button onClick={onClose} className="p-1 text-gray-400 hover:text-gray-600">
+            <X size={20} />
+          </button>
+        </div>
+
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Name</label>
+            <input
+              type="text"
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              placeholder="e.g. What I ate today"
+              className="w-full px-3 py-2.5 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+              autoFocus
+              required
+            />
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">Icon</label>
+            <div className="flex flex-wrap gap-2">
+              {ICONS.map((i) => (
+                <button
+                  key={i}
+                  type="button"
+                  onClick={() => setIcon(i)}
+                  className={`w-10 h-10 text-xl rounded-lg border-2 flex items-center justify-center transition-colors ${
+                    icon === i ? 'border-indigo-500 bg-indigo-50' : 'border-gray-200 hover:border-gray-300'
+                  }`}
+                >
+                  {i}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">Color</label>
+            <div className="flex gap-2">
+              {COLORS.map((c) => (
+                <button
+                  key={c}
+                  type="button"
+                  onClick={() => setColor(c)}
+                  className={`w-8 h-8 rounded-full border-2 transition-transform ${
+                    color === c ? 'border-gray-900 scale-110' : 'border-transparent hover:scale-105'
+                  }`}
+                  style={{ backgroundColor: c }}
+                />
+              ))}
+            </div>
+          </div>
+
+          <div className="flex gap-3 mt-2">
+            <button
+              type="button"
+              onClick={onClose}
+              className="flex-1 py-2.5 border border-gray-200 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50"
+            >
+              Cancel
+            </button>
+            <button
+              type="submit"
+              disabled={saving || !name.trim()}
+              className="flex-1 py-2.5 bg-indigo-600 text-white rounded-lg text-sm font-medium hover:bg-indigo-700 disabled:opacity-50"
+            >
+              {saving ? 'Saving...' : log ? 'Update' : 'Create'}
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  );
+}

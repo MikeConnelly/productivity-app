@@ -1,0 +1,11 @@
+{
+  "ProductivityAppStack": {
+    "UserPoolClientId": "48us1sg3rf7eufndkr8be316jt",
+    "DatabaseTableName64177828": "productivity-app-productivityappstack",
+    "UserPoolId": "us-east-1_1uXNPwlyE",
+    "ApiUrl": "https://jbqyx2ebcl.execute-api.us-east-1.amazonaws.com/prod/",
+    "CloudFrontUrl": "https://d2jluap5op8q7m.cloudfront.net",
+    "BucketName": "productivityappstack-hostingfrontendbucket74d527b5-7nftzzo314go",
+    "ApiEndpoint1541504C": "https://jbqyx2ebcl.execute-api.us-east-1.amazonaws.com/prod/"
+  }
+}

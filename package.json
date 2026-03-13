@@ -1,0 +1,22 @@
+{
+  "name": "productivity-app",
+  "version": "1.0.0",
+  "private": true,
+  "workspaces": [
+    "frontend",
+    "backend",
+    "infra"
+  ],
+  "scripts": {
+    "dev": "npm run dev --workspace=frontend",
+    "build:frontend": "npm run build --workspace=frontend",
+    "build:backend": "npm run build --workspace=backend",
+    "build:infra": "npm run build --workspace=infra",
+    "build": "npm run build:backend && npm run build:frontend",
+    "deploy": "npm run build && cd infra && npx cdk deploy",
+    "test": "npm run test --workspaces --if-present"
+  },
+  "engines": {
+    "node": ">=20.0.0"
+  }
+}

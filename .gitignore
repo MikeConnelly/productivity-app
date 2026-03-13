@@ -1,0 +1,9 @@
+node_modules/
+dist/
+cdk.out/
+.env*
+aws-exports.ts
+*.js.map
+coverage/
+.DS_Store
+*.local

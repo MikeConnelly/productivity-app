@@ -1,0 +1,8 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(cd /home/mike/dev/productivity-app/frontend && npx tsc --noEmit 2>&1)",
+      "Bash(cd /home/mike/dev/productivity-app/infra && npx tsc --noEmit 2>&1)"
+    ]
+  }
+}

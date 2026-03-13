@@ -1,0 +1,105 @@
+import { useParams, Link } from 'react-router-dom';
+import { ArrowLeft } from 'lucide-react';
+import { useHabits } from '../hooks/useHabits';
+import { useHabitHistory } from '../hooks/useHabitHistory';
+import { HeatmapChart } from '../components/habits/HeatmapChart';
+import { StreakChart } from '../components/habits/StreakChart';
+import { StreakBadge } from '../components/habits/StreakBadge';
+import { Skeleton } from '../components/Skeleton';
+import { format, parseISO } from 'date-fns';
+
+export function HabitDetailPage() {
+  const { id } = useParams<{ id: string }>();
+  const { habits, loading: habitsLoading } = useHabits();
+  const { history, loading: historyLoading } = useHabitHistory(id ?? '');
+
+  const habit = habits.find((h) => h.habitId === id);
+
+  if (habitsLoading) {
+    return (
+      <div className="max-w-2xl mx-auto px-4 py-6 space-y-4">
+        <Skeleton className="h-8 w-48" />
+        <Skeleton className="h-24 w-full" />
+        <Skeleton className="h-48 w-full" />
+      </div>
+    );
+  }
+
+  if (!habit) {
+    return (
+      <div className="max-w-2xl mx-auto px-4 py-6 text-center">
+        <p className="text-gray-500">Habit not found</p>
+        <Link to="/habits" className="text-indigo-600 text-sm mt-2 inline-block">← Back to habits</Link>
+      </div>
+    );
+  }
+
+  const recentCompletions = [...history]
+    .sort((a, b) => b.date.localeCompare(a.date))
+    .slice(0, 10);
+
+  return (
+    <div className="max-w-2xl mx-auto px-4 py-6 md:py-8 space-y-6">
+      <div className="flex items-center gap-3">
+        <Link to="/habits" className="p-2 text-gray-400 hover:text-gray-600 -ml-2">
+          <ArrowLeft size={20} />
+        </Link>
+        <span className="text-2xl">{habit.icon}</span>
+        <h1 className="text-2xl font-bold text-gray-900">{habit.name}</h1>
+      </div>
+
+      <StreakBadge
+        currentStreak={habit.currentStreak}
+        longestStreak={habit.longestStreak}
+      />
+
+      <div className="bg-white rounded-xl shadow-sm p-5">
+        <h2 className="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-4">
+          Last 12 Months
+        </h2>
+        {historyLoading ? (
+          <Skeleton className="h-28 w-full" />
+        ) : (
+          <HeatmapChart history={history} color={habit.color} />
+        )}
+      </div>
+
+      <div className="bg-white rounded-xl shadow-sm p-5">
+        <h2 className="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-4">
+          Weekly Completions (Last 16 weeks)
+        </h2>
+        {historyLoading ? (
+          <Skeleton className="h-44 w-full" />
+        ) : (
+          <StreakChart history={history} color={habit.color} />
+        )}
+      </div>
+
+      {recentCompletions.length > 0 && (
+        <div className="bg-white rounded-xl shadow-sm p-5">
+          <h2 className="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-3">
+            Recent Completions
+          </h2>
+          <div className="space-y-2">
+            {recentCompletions.map((c) => (
+              <div key={c.date} className="flex items-start gap-3 py-2 border-b border-gray-50 last:border-0">
+                <div
+                  className="w-2 h-2 rounded-full mt-1.5 flex-shrink-0"
+                  style={{ backgroundColor: habit.color }}
+                />
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm font-medium text-gray-900">
+                    {format(parseISO(c.date), 'EEEE, MMM d, yyyy')}
+                  </p>
+                  {c.note && (
+                    <p className="text-xs text-gray-500 mt-0.5">"{c.note}"</p>
+                  )}
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
