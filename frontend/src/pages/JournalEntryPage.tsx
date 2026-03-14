@@ -5,6 +5,7 @@ import { format, parseISO } from 'date-fns';
 import MDEditor from '@uiw/react-md-editor';
 import { useJournalEntry } from '../hooks/useJournal';
 import { journalApi } from '../api/journal';
+import { useTheme } from '../context/ThemeContext';
 
 export function JournalEntryPage() {
   const { date } = useParams<{ date: string }>();
@@ -13,8 +14,8 @@ export function JournalEntryPage() {
   const [saveStatus, setSaveStatus] = useState<'idle' | 'saving' | 'saved'>('idle');
   const saveTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
   const initialized = useRef(false);
+  const { theme } = useTheme();
 
-  // Initialize content from entry once loaded
   useEffect(() => {
     if (!loading && !initialized.current) {
       setContent(entry?.content ?? '');
@@ -48,19 +49,19 @@ export function JournalEntryPage() {
     <div className="max-w-3xl mx-auto px-4 py-6 md:py-8">
       <div className="flex items-center justify-between mb-6">
         <div className="flex items-center gap-3">
-          <Link to="/journal" className="p-2 text-gray-400 hover:text-gray-600 -ml-2">
+          <Link to="/journal" className="p-2 text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300 -ml-2">
             <ArrowLeft size={20} />
           </Link>
           <div>
-            <h1 className="text-xl font-bold text-gray-900">{displayDate}</h1>
+            <h1 className="text-xl font-bold text-gray-900 dark:text-gray-100">{displayDate}</h1>
             {entry && (
-              <p className="text-xs text-gray-400">{entry.wordCount} words</p>
+              <p className="text-xs text-gray-400 dark:text-gray-500">{entry.wordCount} words</p>
             )}
           </div>
         </div>
         <div className="flex items-center gap-2 text-sm">
           {saveStatus === 'saving' && (
-            <span className="flex items-center gap-1.5 text-gray-400">
+            <span className="flex items-center gap-1.5 text-gray-400 dark:text-gray-500">
               <Loader2 size={14} className="animate-spin" />
               Saving...
             </span>
@@ -85,10 +86,10 @@ export function JournalEntryPage() {
 
       {loading ? (
         <div className="animate-pulse space-y-3">
-          <div className="h-96 bg-gray-200 rounded-xl" />
+          <div className="h-96 bg-gray-200 dark:bg-gray-700 rounded-xl" />
         </div>
       ) : (
-        <div data-color-mode="light">
+        <div data-color-mode={theme}>
           <MDEditor
             value={content}
             onChange={handleChange}

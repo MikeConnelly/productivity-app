@@ -11,9 +11,12 @@ import { LogsPage } from './pages/LogsPage';
 import { LogDetailPage } from './pages/LogDetailPage';
 import { LogEntryPage } from './pages/LogEntryPage';
 import { CalendarPage } from './pages/CalendarPage';
+import { DayPage } from './pages/DayPage';
+import { ThemeProvider } from './context/ThemeContext';
 
 export default function App() {
   return (
+    <ThemeProvider>
     <Authenticator>
       {() => (
         <BrowserRouter>
@@ -28,10 +31,12 @@ export default function App() {
               <Route path="/logs/:logId" element={<LogDetailPage />} />
               <Route path="/logs/:logId/entries/:date" element={<LogEntryPage />} />
               <Route path="/calendar" element={<CalendarPage />} />
+              <Route path="/day/:date" element={<DayPage />} />
             </Routes>
           </AppShell>
         </BrowserRouter>
       )}
     </Authenticator>
+    </ThemeProvider>
   );
 }

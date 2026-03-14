@@ -28,7 +28,7 @@ export function HabitDetailPage() {
   if (!habit) {
     return (
       <div className="max-w-2xl mx-auto px-4 py-6 text-center">
-        <p className="text-gray-500">Habit not found</p>
+        <p className="text-gray-500 dark:text-gray-400">Habit not found</p>
         <Link to="/habits" className="text-indigo-600 text-sm mt-2 inline-block">← Back to habits</Link>
       </div>
     );
@@ -41,11 +41,11 @@ export function HabitDetailPage() {
   return (
     <div className="max-w-2xl mx-auto px-4 py-6 md:py-8 space-y-6">
       <div className="flex items-center gap-3">
-        <Link to="/habits" className="p-2 text-gray-400 hover:text-gray-600 -ml-2">
+        <Link to="/habits" className="p-2 text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300 -ml-2">
           <ArrowLeft size={20} />
         </Link>
         <span className="text-2xl">{habit.icon}</span>
-        <h1 className="text-2xl font-bold text-gray-900">{habit.name}</h1>
+        <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">{habit.name}</h1>
       </div>
 
       <StreakBadge
@@ -53,8 +53,8 @@ export function HabitDetailPage() {
         longestStreak={habit.longestStreak}
       />
 
-      <div className="bg-white rounded-xl shadow-sm p-5">
-        <h2 className="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-4">
+      <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm p-5">
+        <h2 className="text-sm font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-4">
           Last 12 Months
         </h2>
         {historyLoading ? (
@@ -64,8 +64,8 @@ export function HabitDetailPage() {
         )}
       </div>
 
-      <div className="bg-white rounded-xl shadow-sm p-5">
-        <h2 className="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-4">
+      <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm p-5">
+        <h2 className="text-sm font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-4">
           Weekly Completions (Last 16 weeks)
         </h2>
         {historyLoading ? (
@@ -76,23 +76,23 @@ export function HabitDetailPage() {
       </div>
 
       {recentCompletions.length > 0 && (
-        <div className="bg-white rounded-xl shadow-sm p-5">
-          <h2 className="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-3">
+        <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm p-5">
+          <h2 className="text-sm font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-3">
             Recent Completions
           </h2>
           <div className="space-y-2">
             {recentCompletions.map((c) => (
-              <div key={c.date} className="flex items-start gap-3 py-2 border-b border-gray-50 last:border-0">
+              <div key={c.date} className="flex items-start gap-3 py-2 border-b border-gray-50 dark:border-gray-700 last:border-0">
                 <div
                   className="w-2 h-2 rounded-full mt-1.5 flex-shrink-0"
                   style={{ backgroundColor: habit.color }}
                 />
                 <div className="flex-1 min-w-0">
-                  <p className="text-sm font-medium text-gray-900">
+                  <p className="text-sm font-medium text-gray-900 dark:text-gray-100">
                     {format(parseISO(c.date), 'EEEE, MMM d, yyyy')}
                   </p>
                   {c.note && (
-                    <p className="text-xs text-gray-500 mt-0.5">"{c.note}"</p>
+                    <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">"{c.note}"</p>
                   )}
                 </div>
               </div>

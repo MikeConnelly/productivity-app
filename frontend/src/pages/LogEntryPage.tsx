@@ -15,7 +15,6 @@ export function LogEntryPage() {
 
   const log = logs.find((l) => l.logId === logId);
 
-  // Load existing entry once
   useEffect(() => {
     if (!logId || !date || initialized.current) return;
     initialized.current = true;
@@ -51,22 +50,22 @@ export function LogEntryPage() {
     <div className="max-w-2xl mx-auto px-4 py-6 md:py-8">
       <div className="flex items-center justify-between mb-6">
         <div className="flex items-center gap-3">
-          <Link to={`/logs/${logId}`} className="p-2 text-gray-400 hover:text-gray-600 -ml-2">
+          <Link to={`/logs/${logId}`} className="p-2 text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300 -ml-2">
             <ArrowLeft size={20} />
           </Link>
           <div>
             {!logsLoading && log && (
               <div className="flex items-center gap-2 mb-0.5">
                 <span>{log.icon}</span>
-                <span className="text-sm font-medium text-gray-500">{log.name}</span>
+                <span className="text-sm font-medium text-gray-500 dark:text-gray-400">{log.name}</span>
               </div>
             )}
-            <h1 className="text-xl font-bold text-gray-900">{displayDate}</h1>
+            <h1 className="text-xl font-bold text-gray-900 dark:text-gray-100">{displayDate}</h1>
           </div>
         </div>
         <div className="flex items-center gap-2 text-sm">
           {saveStatus === 'saving' && (
-            <span className="flex items-center gap-1.5 text-gray-400">
+            <span className="flex items-center gap-1.5 text-gray-400 dark:text-gray-500">
               <Loader2 size={14} className="animate-spin" />
               Saving...
             </span>
@@ -93,7 +92,7 @@ export function LogEntryPage() {
         value={content}
         onChange={handleChange}
         placeholder="Write your entry..."
-        className="w-full h-64 px-4 py-3 bg-white border border-gray-200 rounded-xl text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 resize-none shadow-sm"
+        className="w-full h-64 px-4 py-3 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl text-sm text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 resize-none shadow-sm"
         autoFocus
       />
     </div>

@@ -31,32 +31,32 @@ export function LogForm({ log, onSave, onClose }: LogFormProps) {
 
   return (
     <div className="fixed inset-0 bg-black/50 flex items-end md:items-center justify-center z-50 p-4">
-      <div className="bg-white rounded-2xl w-full max-w-md p-6">
+      <div className="bg-white dark:bg-gray-800 rounded-2xl w-full max-w-md p-6">
         <div className="flex items-center justify-between mb-5">
-          <h3 className="font-semibold text-gray-900 text-lg">
+          <h3 className="font-semibold text-gray-900 dark:text-gray-100 text-lg">
             {log ? 'Edit Log' : 'New Log'}
           </h3>
-          <button onClick={onClose} className="p-1 text-gray-400 hover:text-gray-600">
+          <button onClick={onClose} className="p-1 text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300">
             <X size={20} />
           </button>
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Name</label>
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Name</label>
             <input
               type="text"
               value={name}
               onChange={(e) => setName(e.target.value)}
               placeholder="e.g. What I ate today"
-              className="w-full px-3 py-2.5 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+              className="w-full px-3 py-2.5 border border-gray-200 dark:border-gray-600 rounded-lg text-sm bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-indigo-500"
               autoFocus
               required
             />
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">Icon</label>
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Icon</label>
             <div className="flex flex-wrap gap-2">
               {ICONS.map((i) => (
                 <button
@@ -64,7 +64,9 @@ export function LogForm({ log, onSave, onClose }: LogFormProps) {
                   type="button"
                   onClick={() => setIcon(i)}
                   className={`w-10 h-10 text-xl rounded-lg border-2 flex items-center justify-center transition-colors ${
-                    icon === i ? 'border-indigo-500 bg-indigo-50' : 'border-gray-200 hover:border-gray-300'
+                    icon === i
+                      ? 'border-indigo-500 bg-indigo-50 dark:bg-indigo-900/50'
+                      : 'border-gray-200 dark:border-gray-600 hover:border-gray-300 dark:hover:border-gray-500'
                   }`}
                 >
                   {i}
@@ -74,7 +76,7 @@ export function LogForm({ log, onSave, onClose }: LogFormProps) {
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">Color</label>
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Color</label>
             <div className="flex gap-2">
               {COLORS.map((c) => (
                 <button
@@ -82,7 +84,7 @@ export function LogForm({ log, onSave, onClose }: LogFormProps) {
                   type="button"
                   onClick={() => setColor(c)}
                   className={`w-8 h-8 rounded-full border-2 transition-transform ${
-                    color === c ? 'border-gray-900 scale-110' : 'border-transparent hover:scale-105'
+                    color === c ? 'border-gray-900 dark:border-white scale-110' : 'border-transparent hover:scale-105'
                   }`}
                   style={{ backgroundColor: c }}
                 />
@@ -94,7 +96,7 @@ export function LogForm({ log, onSave, onClose }: LogFormProps) {
             <button
               type="button"
               onClick={onClose}
-              className="flex-1 py-2.5 border border-gray-200 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50"
+              className="flex-1 py-2.5 border border-gray-200 dark:border-gray-600 rounded-lg text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700"
             >
               Cancel
             </button>

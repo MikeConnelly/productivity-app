@@ -1,6 +1,7 @@
 import ActivityCalendar from 'react-activity-calendar';
 import type { Completion } from '../../api/habits';
 import { subYears, format } from 'date-fns';
+import { useTheme } from '../../context/ThemeContext';
 
 interface HeatmapChartProps {
   history: Completion[];
@@ -8,16 +9,15 @@ interface HeatmapChartProps {
 }
 
 export function HeatmapChart({ history, color }: HeatmapChartProps) {
+  const { theme } = useTheme();
   const today = new Date();
   const yearAgo = subYears(today, 1);
 
-  // Build a map of date -> count
   const dateMap = new Map<string, number>();
   for (const c of history) {
     dateMap.set(c.date, (dateMap.get(c.date) ?? 0) + 1);
   }
 
-  // react-activity-calendar requires all dates between start and end
   const data: { date: string; count: number; level: number }[] = [];
   const current = new Date(yearAgo);
   while (current <= today) {
@@ -31,9 +31,10 @@ export function HeatmapChart({ history, color }: HeatmapChartProps) {
     <div className="overflow-x-auto">
       <ActivityCalendar
         data={data}
-        colorScheme="light"
+        colorScheme={theme}
         theme={{
           light: ['#f3f4f6', color],
+          dark: ['#374151', color],
         }}
         blockSize={12}
         blockMargin={3}

@@ -1,7 +1,7 @@
-import { useState, useEffect, useCallback } from 'react';
-import { Link } from 'react-router-dom';
-import { format } from 'date-fns';
-import { BookOpen } from 'lucide-react';
+import { useState, useCallback } from 'react';
+import { Link, useParams, useNavigate } from 'react-router-dom';
+import { parse, format } from 'date-fns';
+import { ArrowLeft, BookOpen } from 'lucide-react';
 import { useHabits, useTodayCompletions } from '../hooks/useHabits';
 import { habitsApi, type Completion } from '../api/habits';
 import { HabitCard } from '../components/habits/HabitCard';
@@ -9,49 +9,41 @@ import { HabitCardSkeleton } from '../components/Skeleton';
 import { useLogs, useDayLogEntries } from '../hooks/useLogs';
 import { LogEntryCard } from '../components/logs/LogEntryCard';
 
-export function TodayPage() {
-  const today = format(new Date(), 'yyyy-MM-dd');
-  const displayDate = format(new Date(), 'EEEE, MMMM d');
-  const { habits, loading: habitsLoading } = useHabits();
-  const { completions, setCompletions, loading: completionsLoading } = useTodayCompletions(today);
-  const { logs, loading: logsLoading } = useLogs();
-  const { logEntries, loading: logEntriesLoading } = useDayLogEntries(today);
-  const [storedDate, setStoredDate] = useState(today);
+export function DayPage() {
+  const { date } = useParams<{ date: string }>();
+  const navigate = useNavigate();
 
-  // Detect stale date on focus
-  useEffect(() => {
-    const handleFocus = () => {
-      const currentDate = format(new Date(), 'yyyy-MM-dd');
-      if (storedDate !== currentDate) {
-        setStoredDate(currentDate);
-        window.location.reload();
-      }
-    };
-    window.addEventListener('focus', handleFocus);
-    return () => window.removeEventListener('focus', handleFocus);
-  }, [storedDate]);
+  const parsedDate = date ? parse(date, 'yyyy-MM-dd', new Date()) : new Date();
+  const displayDate = format(parsedDate, 'EEEE, MMMM d');
+
+  const { habits, loading: habitsLoading } = useHabits();
+  const { completions, setCompletions, loading: completionsLoading } = useTodayCompletions(date!);
+  const { logs, loading: logsLoading } = useLogs();
+  const { logEntries, loading: logEntriesLoading } = useDayLogEntries(date!);
+
+  const [localDate] = useState(date!);
 
   const handleToggle = useCallback(async (habitId: string, completed: boolean, note?: string) => {
     if (completed) {
       setCompletions((prev) => {
         const filtered = prev.filter((c) => c.habitId !== habitId);
-        return [...filtered, { habitId, date: today, completedAt: new Date().toISOString(), note }];
+        return [...filtered, { habitId, date: localDate, completedAt: new Date().toISOString(), note }];
       });
       try {
-        await habitsApi.complete(habitId, today, note);
+        await habitsApi.complete(habitId, localDate, note);
       } catch {
         setCompletions((prev) => prev.filter((c) => c.habitId !== habitId));
       }
     } else {
       setCompletions((prev) => prev.filter((c) => c.habitId !== habitId));
       try {
-        await habitsApi.uncomplete(habitId, today);
+        await habitsApi.uncomplete(habitId, localDate);
       } catch {
-        const restored: Completion = { habitId, date: today, completedAt: new Date().toISOString() };
+        const restored: Completion = { habitId, date: localDate, completedAt: new Date().toISOString() };
         setCompletions((prev) => [...prev, restored]);
       }
     }
-  }, [today, setCompletions]);
+  }, [localDate, setCompletions]);
 
   const completionMap = new Map(completions.map((c) => [c.habitId, c]));
   const completedCount = completions.length;
@@ -62,6 +54,14 @@ export function TodayPage() {
 
   return (
     <div className="max-w-2xl mx-auto px-4 py-6 md:py-8">
+      <button
+        onClick={() => navigate(-1)}
+        className="flex items-center gap-1 text-sm text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 mb-4"
+      >
+        <ArrowLeft size={16} />
+        Back
+      </button>
+
       <div className="mb-6">
         <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">{displayDate}</h1>
         <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
@@ -79,7 +79,7 @@ export function TodayPage() {
 
       <section>
         <h2 className="text-sm font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-3">
-          Today's Habits
+          Habits
         </h2>
         {loading ? (
           <div className="space-y-3">
@@ -87,7 +87,7 @@ export function TodayPage() {
           </div>
         ) : habits.length === 0 ? (
           <div className="text-center py-12 bg-white dark:bg-gray-800 rounded-xl shadow-sm">
-            <p className="text-gray-500 dark:text-gray-400 mb-3">No habits yet</p>
+            <p className="text-gray-500 dark:text-gray-400 mb-3">No active habits</p>
             <Link to="/habits" className="text-indigo-600 font-medium text-sm hover:underline">
               Create your first habit →
             </Link>
@@ -114,7 +114,7 @@ export function TodayPage() {
           </div>
         ) : logs.length === 0 ? (
           <div className="text-center py-8 bg-white dark:bg-gray-800 rounded-xl shadow-sm">
-            <p className="text-gray-500 dark:text-gray-400 mb-2 text-sm">No logs yet</p>
+            <p className="text-gray-500 dark:text-gray-400 mb-2 text-sm">No active logs</p>
             <Link to="/logs" className="text-indigo-600 font-medium text-sm hover:underline">
               Create your first log →
             </Link>
@@ -128,7 +128,7 @@ export function TodayPage() {
                   key={log.logId}
                   log={log}
                   entry={entryMap.get(log.logId)}
-                  date={today}
+                  date={date!}
                 />
               ));
             })()}
@@ -137,19 +137,17 @@ export function TodayPage() {
       </section>
 
       <section className="mt-8">
-        <div className="flex items-center justify-between mb-3">
-          <h2 className="text-sm font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide">Journal</h2>
-        </div>
+        <h2 className="text-sm font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-3">Journal</h2>
         <Link
-          to={`/journal/${today}`}
+          to={`/journal/${date}`}
           className="flex items-center gap-3 p-4 bg-white dark:bg-gray-800 rounded-xl shadow-sm hover:shadow-md transition-shadow"
         >
           <div className="p-2 bg-indigo-50 dark:bg-indigo-900/50 rounded-lg">
             <BookOpen size={20} className="text-indigo-600" />
           </div>
           <div>
-            <p className="font-medium text-gray-900 dark:text-gray-100 text-sm">Today's Journal</p>
-            <p className="text-xs text-gray-400 dark:text-gray-500">Write about your day</p>
+            <p className="font-medium text-gray-900 dark:text-gray-100 text-sm">{displayDate}'s Journal</p>
+            <p className="text-xs text-gray-400 dark:text-gray-500">View or write entry</p>
           </div>
         </Link>
       </section>

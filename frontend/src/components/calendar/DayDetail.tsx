@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
+import { Expand } from 'lucide-react';
 import { type Habit, type Completion } from '../../api/habits';
 import { logsApi, type Log, type LogEntry } from '../../api/logs';
 import { journalApi, type JournalEntry } from '../../api/journal';
@@ -37,14 +38,24 @@ export function DayDetail({ date, habits, completions, logs }: DayDetailProps) {
   });
 
   return (
-    <div className="mt-4 bg-white rounded-xl border border-gray-200 p-4 space-y-4">
-      <h3 className="font-semibold text-gray-800">{displayDate}</h3>
+    <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-4 space-y-4">
+      <div className="flex items-center justify-between">
+        <h3 className="font-semibold text-gray-800 dark:text-gray-100">{displayDate}</h3>
+        <Link
+          to={`/day/${date}`}
+          className="flex items-center gap-1 text-xs text-indigo-600 hover:text-indigo-700"
+          title="Open full page view"
+        >
+          <Expand size={14} />
+          Full view
+        </Link>
+      </div>
 
       {/* Habits */}
       <section>
-        <h4 className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">Habits</h4>
+        <h4 className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-2">Habits</h4>
         {habits.length === 0 ? (
-          <p className="text-sm text-gray-400">No active habits</p>
+          <p className="text-sm text-gray-400 dark:text-gray-500">No active habits</p>
         ) : (
           <ul className="space-y-1">
             {habits.map((habit) => (
@@ -52,9 +63,9 @@ export function DayDetail({ date, habits, completions, logs }: DayDetailProps) {
                 {completedIds.has(habit.habitId) ? (
                   <span className="text-indigo-600 font-bold">✓</span>
                 ) : (
-                  <span className="text-gray-300">–</span>
+                  <span className="text-gray-300 dark:text-gray-600">–</span>
                 )}
-                <span className={completedIds.has(habit.habitId) ? 'text-gray-800' : 'text-gray-400'}>
+                <span className={completedIds.has(habit.habitId) ? 'text-gray-800 dark:text-gray-200' : 'text-gray-400 dark:text-gray-500'}>
                   {habit.name}
                 </span>
               </li>
@@ -65,11 +76,11 @@ export function DayDetail({ date, habits, completions, logs }: DayDetailProps) {
 
       {/* Logs */}
       <section>
-        <h4 className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">Logs</h4>
+        <h4 className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-2">Logs</h4>
         {loadingDetail ? (
-          <p className="text-sm text-gray-400">Loading...</p>
+          <p className="text-sm text-gray-400 dark:text-gray-500">Loading...</p>
         ) : logs.length === 0 ? (
-          <p className="text-sm text-gray-400">No active logs</p>
+          <p className="text-sm text-gray-400 dark:text-gray-500">No active logs</p>
         ) : (
           <ul className="space-y-1">
             {logs.map((log) => {
@@ -77,7 +88,7 @@ export function DayDetail({ date, habits, completions, logs }: DayDetailProps) {
               return (
                 <li key={log.logId} className="flex items-start gap-2 text-sm">
                   <span className="mt-0.5">{log.icon}</span>
-                  <span className="font-medium text-gray-700 shrink-0">{log.name}:</span>
+                  <span className="font-medium text-gray-700 dark:text-gray-300 shrink-0">{log.name}:</span>
                   {entry ? (
                     <Link
                       to={`/logs/${log.logId}/entries/${date}`}
@@ -86,7 +97,7 @@ export function DayDetail({ date, habits, completions, logs }: DayDetailProps) {
                       {entry.content}
                     </Link>
                   ) : (
-                    <span className="text-gray-300">—</span>
+                    <span className="text-gray-300 dark:text-gray-600">—</span>
                   )}
                 </li>
               );
@@ -97,19 +108,19 @@ export function DayDetail({ date, habits, completions, logs }: DayDetailProps) {
 
       {/* Journal */}
       <section>
-        <h4 className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">Journal</h4>
+        <h4 className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-2">Journal</h4>
         {loadingDetail ? (
-          <p className="text-sm text-gray-400">Loading...</p>
+          <p className="text-sm text-gray-400 dark:text-gray-500">Loading...</p>
         ) : journal ? (
           <div>
-            <p className="text-sm text-gray-600 line-clamp-2">{journal.content}</p>
+            <p className="text-sm text-gray-600 dark:text-gray-400 line-clamp-2">{journal.content}</p>
             <Link to={`/journal/${date}`} className="text-xs text-indigo-600 hover:underline mt-1 inline-block">
               Open entry →
             </Link>
           </div>
         ) : (
           <div>
-            <p className="text-sm text-gray-400">No entry</p>
+            <p className="text-sm text-gray-400 dark:text-gray-500">No entry</p>
             <Link to={`/journal/${date}`} className="text-xs text-indigo-600 hover:underline mt-1 inline-block">
               Write entry →
             </Link>

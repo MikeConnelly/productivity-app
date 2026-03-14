@@ -11,7 +11,7 @@ export function JournalPage() {
   return (
     <div className="max-w-2xl mx-auto px-4 py-6 md:py-8">
       <div className="flex items-center justify-between mb-6">
-        <h1 className="text-2xl font-bold text-gray-900">Journal</h1>
+        <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">Journal</h1>
         <Link
           to={`/journal/${today}`}
           className="flex items-center gap-2 px-4 py-2 bg-indigo-600 text-white rounded-lg text-sm font-medium hover:bg-indigo-700"
@@ -24,7 +24,7 @@ export function JournalPage() {
       {loading ? (
         <div className="space-y-3">
           {[1, 2, 3].map((i) => (
-            <div key={i} className="bg-white rounded-xl shadow-sm p-4">
+            <div key={i} className="bg-white dark:bg-gray-800 rounded-xl shadow-sm p-4">
               <Skeleton className="h-5 w-36 mb-2" />
               <Skeleton className="h-4 w-full mb-1" />
               <Skeleton className="h-4 w-2/3" />
@@ -32,9 +32,9 @@ export function JournalPage() {
           ))}
         </div>
       ) : entries.length === 0 ? (
-        <div className="text-center py-16 bg-white rounded-xl shadow-sm">
-          <FileText size={40} className="text-gray-300 mx-auto mb-3" />
-          <p className="text-gray-500 mb-3">No journal entries yet</p>
+        <div className="text-center py-16 bg-white dark:bg-gray-800 rounded-xl shadow-sm">
+          <FileText size={40} className="text-gray-300 dark:text-gray-600 mx-auto mb-3" />
+          <p className="text-gray-500 dark:text-gray-400 mb-3">No journal entries yet</p>
           <Link
             to={`/journal/${today}`}
             className="px-4 py-2 bg-indigo-600 text-white rounded-lg text-sm font-medium hover:bg-indigo-700"
@@ -51,15 +51,15 @@ export function JournalPage() {
               <Link
                 key={entry.date}
                 to={`/journal/${entry.date}`}
-                className="block bg-white rounded-xl shadow-sm p-4 hover:shadow-md transition-shadow"
+                className="block bg-white dark:bg-gray-800 rounded-xl shadow-sm p-4 hover:shadow-md transition-shadow"
               >
                 <div className="flex items-center justify-between mb-2">
-                  <p className="font-semibold text-gray-900">
+                  <p className="font-semibold text-gray-900 dark:text-gray-100">
                     {format(date, 'EEEE, MMMM d, yyyy')}
                   </p>
-                  <span className="text-xs text-gray-400">{entry.wordCount} words</span>
+                  <span className="text-xs text-gray-400 dark:text-gray-500">{entry.wordCount} words</span>
                 </div>
-                <p className="text-sm text-gray-600 line-clamp-2">{preview}</p>
+                <p className="text-sm text-gray-600 dark:text-gray-400 line-clamp-2">{preview}</p>
               </Link>
             );
           })}
