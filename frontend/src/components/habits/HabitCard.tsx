@@ -22,7 +22,12 @@ export function HabitCard({ habit, completion, onToggle }: HabitCardProps) {
         style={{ borderLeftColor: habit.color }}
       >
         <button
-          onClick={() => onToggle(habit.habitId, !isCompleted)}
+          onClick={() => {
+            if (isCompleted && completion?.note) {
+              if (!window.confirm('This completion has a note attached. Are you sure you want to remove it?')) return;
+            }
+            onToggle(habit.habitId, !isCompleted);
+          }}
           className={`flex-shrink-0 w-6 h-6 rounded-md border-2 flex items-center justify-center transition-colors min-h-[44px] min-w-[44px] -ml-2`}
           style={{
             borderColor: isCompleted ? habit.color : '#d1d5db',
