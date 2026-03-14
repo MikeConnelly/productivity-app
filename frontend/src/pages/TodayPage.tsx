@@ -1,22 +1,28 @@
 import { useState, useEffect, useCallback } from 'react';
 import { Link } from 'react-router-dom';
 import { format } from 'date-fns';
-import { BookOpen } from 'lucide-react';
+import { BookOpen, Plus, ChevronRight } from 'lucide-react';
 import { useHabits, useTodayCompletions } from '../hooks/useHabits';
 import { habitsApi, type Completion } from '../api/habits';
 import { HabitCard } from '../components/habits/HabitCard';
+import { HabitForm } from '../components/habits/HabitForm';
 import { HabitCardSkeleton } from '../components/Skeleton';
 import { useLogs, useDayLogEntries } from '../hooks/useLogs';
+import { logsApi } from '../api/logs';
 import { LogEntryCard } from '../components/logs/LogEntryCard';
+import { LogForm } from '../components/logs/LogForm';
 
 export function TodayPage() {
   const today = format(new Date(), 'yyyy-MM-dd');
   const displayDate = format(new Date(), 'EEEE, MMMM d');
-  const { habits, loading: habitsLoading } = useHabits();
+  const { habits, loading: habitsLoading, setHabits } = useHabits();
   const { completions, setCompletions, loading: completionsLoading } = useTodayCompletions(today);
-  const { logs, loading: logsLoading } = useLogs();
+  const { logs, loading: logsLoading, setLogs } = useLogs();
   const { logEntries, loading: logEntriesLoading } = useDayLogEntries(today);
   const [storedDate, setStoredDate] = useState(today);
+
+  const [showHabitForm, setShowHabitForm] = useState(false);
+  const [showLogForm, setShowLogForm] = useState(false);
 
   // Detect stale date on focus
   useEffect(() => {
@@ -53,6 +59,16 @@ export function TodayPage() {
     }
   }, [today, setCompletions]);
 
+  const handleCreateHabit = async (data: { name: string; color: string; icon: string }) => {
+    const newHabit = await habitsApi.create(data);
+    setHabits((prev) => [...prev, newHabit]);
+  };
+
+  const handleCreateLog = async (data: { name: string; color: string; icon: string }) => {
+    const newLog = await logsApi.create(data);
+    setLogs((prev) => [...prev, newLog]);
+  };
+
   const completionMap = new Map(completions.map((c) => [c.habitId, c]));
   const completedCount = completions.length;
   const totalCount = habits.length;
@@ -78,9 +94,18 @@ export function TodayPage() {
       </div>
 
       <section>
-        <h2 className="text-sm font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-3">
-          Today's Habits
-        </h2>
+        <div className="flex items-center justify-between mb-3">
+          <h2 className="text-sm font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide">
+            Today's Habits
+          </h2>
+          <button
+            onClick={() => setShowHabitForm(true)}
+            className="flex items-center gap-1 text-xs font-medium text-indigo-600 hover:text-indigo-700"
+          >
+            <Plus size={14} />
+            New Habit
+          </button>
+        </div>
         {loading ? (
           <div className="space-y-3">
             {[1, 2, 3].map((i) => <HabitCardSkeleton key={i} />)}
@@ -88,9 +113,12 @@ export function TodayPage() {
         ) : habits.length === 0 ? (
           <div className="text-center py-12 bg-white dark:bg-gray-800 rounded-xl shadow-sm">
             <p className="text-gray-500 dark:text-gray-400 mb-3">No habits yet</p>
-            <Link to="/habits" className="text-indigo-600 font-medium text-sm hover:underline">
+            <button
+              onClick={() => setShowHabitForm(true)}
+              className="text-indigo-600 font-medium text-sm hover:underline"
+            >
               Create your first habit →
-            </Link>
+            </button>
           </div>
         ) : (
           <div className="space-y-3">
@@ -107,7 +135,16 @@ export function TodayPage() {
       </section>
 
       <section className="mt-8">
-        <h2 className="text-sm font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-3">Daily Logs</h2>
+        <div className="flex items-center justify-between mb-3">
+          <h2 className="text-sm font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide">Daily Logs</h2>
+          <button
+            onClick={() => setShowLogForm(true)}
+            className="flex items-center gap-1 text-xs font-medium text-indigo-600 hover:text-indigo-700"
+          >
+            <Plus size={14} />
+            New Log
+          </button>
+        </div>
         {logsLoading || logEntriesLoading ? (
           <div className="space-y-3">
             {[1, 2].map((i) => <HabitCardSkeleton key={i} />)}
@@ -115,9 +152,12 @@ export function TodayPage() {
         ) : logs.length === 0 ? (
           <div className="text-center py-8 bg-white dark:bg-gray-800 rounded-xl shadow-sm">
             <p className="text-gray-500 dark:text-gray-400 mb-2 text-sm">No logs yet</p>
-            <Link to="/logs" className="text-indigo-600 font-medium text-sm hover:underline">
+            <button
+              onClick={() => setShowLogForm(true)}
+              className="text-indigo-600 font-medium text-sm hover:underline"
+            >
               Create your first log →
-            </Link>
+            </button>
           </div>
         ) : (
           <div className="space-y-3">
@@ -140,19 +180,42 @@ export function TodayPage() {
         <div className="flex items-center justify-between mb-3">
           <h2 className="text-sm font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide">Journal</h2>
         </div>
-        <Link
-          to={`/journal/${today}`}
-          className="flex items-center gap-3 p-4 bg-white dark:bg-gray-800 rounded-xl shadow-sm hover:shadow-md transition-shadow"
-        >
-          <div className="p-2 bg-indigo-50 dark:bg-indigo-900/50 rounded-lg">
-            <BookOpen size={20} className="text-indigo-600" />
-          </div>
-          <div>
-            <p className="font-medium text-gray-900 dark:text-gray-100 text-sm">Today's Journal</p>
-            <p className="text-xs text-gray-400 dark:text-gray-500">Write about your day</p>
-          </div>
-        </Link>
+        <div className="flex items-center gap-3 p-4 bg-white dark:bg-gray-800 rounded-xl shadow-sm">
+          <Link
+            to={`/journal/${today}`}
+            className="flex items-center gap-3 flex-1 min-w-0 hover:opacity-80 transition-opacity"
+          >
+            <div className="p-2 bg-indigo-50 dark:bg-indigo-900/50 rounded-lg flex-shrink-0">
+              <BookOpen size={20} className="text-indigo-600" />
+            </div>
+            <div className="min-w-0">
+              <p className="font-medium text-gray-900 dark:text-gray-100 text-sm">Today's Journal</p>
+              <p className="text-xs text-gray-400 dark:text-gray-500">Write about your day</p>
+            </div>
+          </Link>
+          <Link
+            to="/journal"
+            className="flex-shrink-0 p-2 text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300 transition-colors min-h-[44px] min-w-[44px] flex items-center justify-center"
+            aria-label="View all journal entries"
+          >
+            <ChevronRight size={16} />
+          </Link>
+        </div>
       </section>
+
+      {showHabitForm && (
+        <HabitForm
+          onSave={handleCreateHabit}
+          onClose={() => setShowHabitForm(false)}
+        />
+      )}
+
+      {showLogForm && (
+        <LogForm
+          onSave={handleCreateLog}
+          onClose={() => setShowLogForm(false)}
+        />
+      )}
     </div>
   );
 }

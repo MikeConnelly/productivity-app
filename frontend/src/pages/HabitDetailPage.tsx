@@ -1,19 +1,38 @@
-import { useParams, Link } from 'react-router-dom';
-import { ArrowLeft } from 'lucide-react';
+import { useState } from 'react';
+import { useParams, Link, useNavigate } from 'react-router-dom';
+import { ArrowLeft, Edit2, Trash2 } from 'lucide-react';
 import { useHabits } from '../hooks/useHabits';
+import { habitsApi } from '../api/habits';
 import { useHabitHistory } from '../hooks/useHabitHistory';
 import { HeatmapChart } from '../components/habits/HeatmapChart';
 import { StreakChart } from '../components/habits/StreakChart';
 import { StreakBadge } from '../components/habits/StreakBadge';
+import { HabitForm } from '../components/habits/HabitForm';
 import { Skeleton } from '../components/Skeleton';
 import { format, parseISO } from 'date-fns';
 
 export function HabitDetailPage() {
   const { id } = useParams<{ id: string }>();
-  const { habits, loading: habitsLoading } = useHabits();
+  const navigate = useNavigate();
+  const { habits, loading: habitsLoading, setHabits } = useHabits();
   const { history, loading: historyLoading } = useHabitHistory(id ?? '');
+  const [showForm, setShowForm] = useState(false);
 
   const habit = habits.find((h) => h.habitId === id);
+
+  const handleUpdate = async (data: { name: string; color: string; icon: string }) => {
+    if (!habit) return;
+    const updated = await habitsApi.update(habit.habitId, data);
+    setHabits((prev) => prev.map((h) => (h.habitId === habit.habitId ? { ...h, ...updated } : h)));
+  };
+
+  const handleDelete = async () => {
+    if (!habit) return;
+    if (!confirm('Delete this habit? This cannot be undone.')) return;
+    setHabits((prev) => prev.filter((h) => h.habitId !== habit.habitId));
+    await habitsApi.delete(habit.habitId);
+    navigate('/');
+  };
 
   if (habitsLoading) {
     return (
@@ -29,7 +48,7 @@ export function HabitDetailPage() {
     return (
       <div className="max-w-2xl mx-auto px-4 py-6 text-center">
         <p className="text-gray-500 dark:text-gray-400">Habit not found</p>
-        <Link to="/habits" className="text-indigo-600 text-sm mt-2 inline-block">← Back to habits</Link>
+        <Link to="/" className="text-indigo-600 text-sm mt-2 inline-block">← Back to today</Link>
       </div>
     );
   }
@@ -41,11 +60,25 @@ export function HabitDetailPage() {
   return (
     <div className="max-w-2xl mx-auto px-4 py-6 md:py-8 space-y-6">
       <div className="flex items-center gap-3">
-        <Link to="/habits" className="p-2 text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300 -ml-2">
+        <Link to="/" className="p-2 text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300 -ml-2">
           <ArrowLeft size={20} />
         </Link>
         <span className="text-2xl">{habit.icon}</span>
-        <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">{habit.name}</h1>
+        <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100 flex-1 min-w-0 truncate">{habit.name}</h1>
+        <button
+          onClick={() => setShowForm(true)}
+          className="p-2 text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300 min-h-[44px] min-w-[44px] flex items-center justify-center"
+          aria-label="Edit habit"
+        >
+          <Edit2 size={18} />
+        </button>
+        <button
+          onClick={handleDelete}
+          className="p-2 text-gray-400 dark:text-gray-500 hover:text-red-500 min-h-[44px] min-w-[44px] flex items-center justify-center"
+          aria-label="Delete habit"
+        >
+          <Trash2 size={18} />
+        </button>
       </div>
 
       <StreakBadge
@@ -99,6 +132,14 @@ export function HabitDetailPage() {
             ))}
           </div>
         </div>
+      )}
+
+      {showForm && (
+        <HabitForm
+          habit={habit}
+          onSave={handleUpdate}
+          onClose={() => setShowForm(false)}
+        />
       )}
     </div>
   );

@@ -1,5 +1,6 @@
 import { useState } from 'react';
-import { MessageSquare, Flame } from 'lucide-react';
+import { Link } from 'react-router-dom';
+import { MessageSquare, Flame, ChevronRight } from 'lucide-react';
 import type { Habit, Completion } from '../../api/habits';
 import { NoteModal } from './NoteModal';
 
@@ -66,6 +67,14 @@ export function HabitCard({ habit, completion, onToggle }: HabitCardProps) {
         >
           <MessageSquare size={16} />
         </button>
+
+        <Link
+          to={`/habits/${habit.habitId}`}
+          className="flex-shrink-0 p-2 text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300 transition-colors min-h-[44px] min-w-[44px] flex items-center justify-center"
+          aria-label="View habit details"
+        >
+          <ChevronRight size={16} />
+        </Link>
       </div>
 
       {showNoteModal && (

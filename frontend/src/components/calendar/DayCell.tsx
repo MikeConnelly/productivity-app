@@ -1,35 +1,29 @@
 interface DayCellProps {
   date: string;
-  completionCount: number;
-  totalHabits: number;
+  level: 0 | 1 | 2 | 3 | 4;
+  color: string;
   isSelected: boolean;
   isToday: boolean;
   onClick: () => void;
 }
 
-function getHeatmapColor(completionCount: number, totalHabits: number): string {
-  if (totalHabits === 0 || completionCount === 0) return 'bg-gray-100 dark:bg-gray-700';
-  const ratio = completionCount / totalHabits;
-  if (ratio <= 0.33) return 'bg-indigo-100 dark:bg-indigo-900';
-  if (ratio <= 0.66) return 'bg-indigo-300 dark:bg-indigo-700';
-  if (ratio < 1) return 'bg-indigo-500';
-  return 'bg-indigo-700';
-}
+const OPACITY_SUFFIX = ['', '33', '80', 'BF', 'FF'] as const;
 
-export function DayCell({ date, completionCount, totalHabits, isSelected, isToday, onClick }: DayCellProps) {
+export function DayCell({ date, level, color, isSelected, isToday, onClick }: DayCellProps) {
   const day = new Date(date + 'T00:00:00').getDate();
-  const heatmap = getHeatmapColor(completionCount, totalHabits);
+
+  const inlineStyle: React.CSSProperties = {};
+  if (level > 0) inlineStyle.backgroundColor = `${color}${OPACITY_SUFFIX[level]}`;
+  if (isSelected) { inlineStyle.outline = `2px solid ${color}`; inlineStyle.outlineOffset = '2px'; }
+
+  const bgClass = level === 0 ? 'bg-gray-100 dark:bg-gray-700' : '';
+  const textClass = level >= 3 ? 'text-white' : 'text-gray-700 dark:text-gray-300';
 
   return (
     <button
       onClick={onClick}
-      className={`
-        aspect-square flex items-center justify-center rounded-lg text-sm transition-all
-        ${heatmap}
-        ${isSelected ? 'ring-2 ring-indigo-600 ring-offset-1 dark:ring-offset-gray-900' : ''}
-        ${completionCount > 0 ? 'text-white' : 'text-gray-700 dark:text-gray-300'}
-        hover:opacity-80
-      `}
+      style={inlineStyle}
+      className={`aspect-square flex items-center justify-center rounded-lg text-sm transition-all hover:opacity-80 ${bgClass} ${textClass} ${isToday ? 'ring-2 ring-black dark:ring-white' : ''}`}
     >
       <span className={isToday ? 'font-bold' : ''}>{day}</span>
     </button>

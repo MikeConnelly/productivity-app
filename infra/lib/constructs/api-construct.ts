@@ -61,6 +61,7 @@ export class ApiConstruct extends Construct {
       deleteLogEntry: makeHandler('deleteLogEntry', 'logs/deleteLogEntry'),
       getLogHistory: makeHandler('getLogHistory', 'logs/getLogHistory'),
       getDayLogEntries: makeHandler('getDayLogEntries', 'logs/getDayLogEntries'),
+      getLogEntriesRange: makeHandler('getLogEntriesRange', 'logs/getLogEntriesRange'),
     };
 
     const api = new apigateway.RestApi(this, 'Api', {
@@ -149,6 +150,10 @@ export class ApiConstruct extends Construct {
     // /log-entries
     const logEntriesRoot = api.root.addResource('log-entries');
     logEntriesRoot.addMethod('GET', new apigateway.LambdaIntegration(handlers.getDayLogEntries), authOptions);
+
+    // /log-entries/range
+    const logEntriesRangeResource = logEntriesRoot.addResource('range');
+    logEntriesRangeResource.addMethod('GET', new apigateway.LambdaIntegration(handlers.getLogEntriesRange), authOptions);
 
     this.apiUrl = api.url;
   }

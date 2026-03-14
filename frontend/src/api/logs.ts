@@ -45,4 +45,7 @@ export const logsApi = {
 
   getDayEntries: (date: string) =>
     apiClient.get<LogEntry[]>('/log-entries', { params: { date } }).then((r) => r.data),
+
+  getEntriesRange: (from: string, to: string) =>
+    apiClient.get<LogEntry[]>('/log-entries/range', { params: { from, to } }).then((r) => r.data),
 };

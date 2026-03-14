@@ -39,11 +39,11 @@ export function DayDetail({ date, habits, completions, logs }: DayDetailProps) {
 
   return (
     <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-4 space-y-4">
-      <div className="flex items-center justify-between">
-        <h3 className="font-semibold text-gray-800 dark:text-gray-100">{displayDate}</h3>
+      <div className="flex items-center justify-between gap-2">
+        <h3 className="font-semibold text-gray-800 dark:text-gray-100 min-w-0 truncate">{displayDate}</h3>
         <Link
           to={`/day/${date}`}
-          className="flex items-center gap-1 text-xs text-indigo-600 hover:text-indigo-700"
+          className="flex items-center gap-1 text-xs text-indigo-600 hover:text-indigo-700 shrink-0"
           title="Open full page view"
         >
           <Expand size={14} />
@@ -86,18 +86,18 @@ export function DayDetail({ date, habits, completions, logs }: DayDetailProps) {
             {logs.map((log) => {
               const entry = logEntries.find((e) => e.logId === log.logId);
               return (
-                <li key={log.logId} className="flex items-start gap-2 text-sm">
-                  <span className="mt-0.5">{log.icon}</span>
+                <li key={log.logId} className="flex items-start gap-2 text-sm min-w-0">
+                  <span className="mt-0.5 shrink-0">{log.icon}</span>
                   <span className="font-medium text-gray-700 dark:text-gray-300 shrink-0">{log.name}:</span>
                   {entry ? (
                     <Link
                       to={`/logs/${log.logId}/entries/${date}`}
-                      className="text-indigo-600 hover:underline truncate max-w-xs"
+                      className="text-indigo-600 hover:underline truncate min-w-0"
                     >
                       {entry.content}
                     </Link>
                   ) : (
-                    <span className="text-gray-300 dark:text-gray-600">—</span>
+                    <span className="text-gray-300 dark:text-gray-600 shrink-0">—</span>
                   )}
                 </li>
               );
