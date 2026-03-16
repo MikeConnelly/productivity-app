@@ -1,35 +1,24 @@
-import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { Expand } from 'lucide-react';
 import { type Habit, type Completion } from '../../api/habits';
-import { logsApi, type Log, type LogEntry } from '../../api/logs';
-import { journalApi, type JournalEntry } from '../../api/journal';
+import { type Log } from '../../api/logs';
+import { useDayLogEntries } from '../../hooks/useLogs';
+import { useJournalEntry } from '../../hooks/useJournal';
 
 interface DayDetailProps {
   date: string;
   habits: Habit[];
   completions: Completion[];
   logs: Log[];
+  onToggle?: (habitId: string, completed: boolean, date: string, note?: string) => void;
 }
 
-export function DayDetail({ date, habits, completions, logs }: DayDetailProps) {
-  const [logEntries, setLogEntries] = useState<LogEntry[]>([]);
-  const [journal, setJournal] = useState<JournalEntry | null>(null);
-  const [loadingDetail, setLoadingDetail] = useState(true);
+export function DayDetail({ date, habits, completions, logs, onToggle }: DayDetailProps) {
+  const { logEntries, loading: logEntriesLoading } = useDayLogEntries(date);
+  const { entry: journal, loading: journalLoading } = useJournalEntry(date);
+  const loadingDetail = logEntriesLoading || journalLoading;
 
-  useEffect(() => {
-    setLoadingDetail(true);
-    Promise.all([
-      logsApi.getDayEntries(date).catch(() => [] as LogEntry[]),
-      journalApi.get(date).catch(() => null),
-    ]).then(([entries, entry]) => {
-      setLogEntries(entries);
-      setJournal(entry);
-      setLoadingDetail(false);
-    });
-  }, [date]);
-
-  const completedIds = new Set(completions.map((c) => c.habitId));
+  const completionMap = new Map(completions.map((c) => [c.habitId, c]));
 
   const displayDate = new Date(date + 'T00:00:00').toLocaleDateString('en-US', {
     weekday: 'long',
@@ -57,19 +46,46 @@ export function DayDetail({ date, habits, completions, logs }: DayDetailProps) {
         {habits.length === 0 ? (
           <p className="text-sm text-gray-400 dark:text-gray-500">No active habits</p>
         ) : (
-          <ul className="space-y-1">
-            {habits.map((habit) => (
-              <li key={habit.habitId} className="flex items-center gap-2 text-sm">
-                {completedIds.has(habit.habitId) ? (
-                  <span className="text-indigo-600 font-bold">✓</span>
-                ) : (
-                  <span className="text-gray-300 dark:text-gray-600">–</span>
-                )}
-                <span className={completedIds.has(habit.habitId) ? 'text-gray-800 dark:text-gray-200' : 'text-gray-400 dark:text-gray-500'}>
-                  {habit.name}
-                </span>
-              </li>
-            ))}
+          <ul className="space-y-2">
+            {habits.map((habit) => {
+              const completion = completionMap.get(habit.habitId);
+              const isCompleted = !!completion;
+              return (
+                <li key={habit.habitId} className="flex items-start gap-2 text-sm">
+                  <button
+                    onClick={() => {
+                      if (!onToggle) return;
+                      if (isCompleted && completion?.note) {
+                        if (!window.confirm('This completion has a note attached. Are you sure you want to remove it?')) return;
+                      }
+                      onToggle(habit.habitId, !isCompleted, date);
+                    }}
+                    disabled={!onToggle}
+                    className="flex-shrink-0 w-5 h-5 rounded border-2 flex items-center justify-center transition-colors mt-0.5"
+                    style={{
+                      borderColor: isCompleted ? habit.color : '#d1d5db',
+                      backgroundColor: isCompleted ? habit.color : 'transparent',
+                      cursor: onToggle ? 'pointer' : 'default',
+                    }}
+                    aria-label={isCompleted ? 'Mark incomplete' : 'Mark complete'}
+                  >
+                    {isCompleted && (
+                      <svg className="w-3 h-3 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                      </svg>
+                    )}
+                  </button>
+                  <div className="min-w-0">
+                    <span className={isCompleted ? 'text-gray-800 dark:text-gray-200' : 'text-gray-400 dark:text-gray-500'}>
+                      {habit.name}
+                    </span>
+                    {completion?.note && (
+                      <p className="text-xs text-gray-400 dark:text-gray-500 truncate">"{completion.note}"</p>
+                    )}
+                  </div>
+                </li>
+              );
+            })}
           </ul>
         )}
       </section>

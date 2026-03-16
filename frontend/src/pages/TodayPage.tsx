@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
+import { useQueryClient } from '@tanstack/react-query';
 import { Link } from 'react-router-dom';
 import { format } from 'date-fns';
 import { BookOpen, Plus, ChevronRight } from 'lucide-react';
@@ -13,6 +14,7 @@ import { LogEntryCard } from '../components/logs/LogEntryCard';
 import { LogForm } from '../components/logs/LogForm';
 
 export function TodayPage() {
+  const queryClient = useQueryClient();
   const today = format(new Date(), 'yyyy-MM-dd');
   const displayDate = format(new Date(), 'EEEE, MMMM d');
   const { habits, loading: habitsLoading, setHabits } = useHabits();
@@ -45,6 +47,8 @@ export function TodayPage() {
       });
       try {
         await habitsApi.complete(habitId, today, note);
+        queryClient.invalidateQueries({ queryKey: ['year-heatmap-habits-range'] });
+        queryClient.invalidateQueries({ queryKey: ['completions-range'] });
       } catch {
         setCompletions((prev) => prev.filter((c) => c.habitId !== habitId));
       }
@@ -52,12 +56,14 @@ export function TodayPage() {
       setCompletions((prev) => prev.filter((c) => c.habitId !== habitId));
       try {
         await habitsApi.uncomplete(habitId, today);
+        queryClient.invalidateQueries({ queryKey: ['year-heatmap-habits-range'] });
+        queryClient.invalidateQueries({ queryKey: ['completions-range'] });
       } catch {
         const restored: Completion = { habitId, date: today, completedAt: new Date().toISOString() };
         setCompletions((prev) => [...prev, restored]);
       }
     }
-  }, [today, setCompletions]);
+  }, [today, setCompletions, queryClient]);
 
   const handleCreateHabit = async (data: { name: string; color: string; icon: string }) => {
     const newHabit = await habitsApi.create(data);

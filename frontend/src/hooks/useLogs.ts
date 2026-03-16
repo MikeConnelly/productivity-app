@@ -1,64 +1,48 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { logsApi, type Log, type LogEntry } from '../api/logs';
+import { queryKeys } from '../lib/queryKeys';
 
 export function useLogs() {
-  const [logs, setLogs] = useState<Log[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const queryClient = useQueryClient();
+  const { data: logs = [], isLoading: loading, error } = useQuery({
+    queryKey: queryKeys.logs,
+    queryFn: () => logsApi.list().then((d) => d.filter((l) => l.active)),
+    staleTime: 5 * 60 * 1000,
+  });
 
-  const fetch = useCallback(async () => {
-    try {
-      setLoading(true);
-      const data = await logsApi.list();
-      setLogs(data.filter((l) => l.active));
-    } catch {
-      setError('Failed to load logs');
-    } finally {
-      setLoading(false);
-    }
-  }, []);
+  const setLogs = (updater: Log[] | ((prev: Log[]) => Log[])) =>
+    queryClient.setQueryData<Log[]>(queryKeys.logs, (prev) => {
+      if (typeof updater === 'function') return updater(prev ?? []);
+      return updater;
+    });
 
-  useEffect(() => {
-    fetch();
-  }, [fetch]);
-
-  return { logs, loading, error, refetch: fetch, setLogs };
+  return { logs, loading, error: error ? 'Failed to load logs' : null, setLogs };
 }
 
 export function useDayLogEntries(date: string) {
-  const [logEntries, setLogEntries] = useState<LogEntry[]>([]);
-  const [loading, setLoading] = useState(true);
+  const queryClient = useQueryClient();
+  const { data: logEntries = [], isLoading: loading } = useQuery({
+    queryKey: queryKeys.dayLogEntries(date),
+    queryFn: () => logsApi.getDayEntries(date),
+    staleTime: 1 * 60 * 1000,
+  });
 
-  const fetch = useCallback(async () => {
-    try {
-      const data = await logsApi.getDayEntries(date);
-      setLogEntries(data);
-    } catch {
-      setLogEntries([]);
-    } finally {
-      setLoading(false);
-    }
-  }, [date]);
+  const setLogEntries = (updater: LogEntry[] | ((prev: LogEntry[]) => LogEntry[])) =>
+    queryClient.setQueryData<LogEntry[]>(queryKeys.dayLogEntries(date), (prev) => {
+      if (typeof updater === 'function') return updater(prev ?? []);
+      return updater;
+    });
 
-  useEffect(() => {
-    fetch();
-  }, [fetch]);
-
-  return { logEntries, loading, setLogEntries, refetch: fetch };
+  return { logEntries, loading, setLogEntries };
 }
 
 export function useLogHistory(logId: string) {
-  const [history, setHistory] = useState<LogEntry[]>([]);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    if (!logId) return;
-    logsApi
-      .getHistory(logId)
-      .then(setHistory)
-      .catch(() => setHistory([]))
-      .finally(() => setLoading(false));
-  }, [logId]);
+  const { data: history = [], isLoading: loading } = useQuery({
+    queryKey: queryKeys.logHistory(logId),
+    queryFn: () => logsApi.getHistory(logId),
+    staleTime: 10 * 60 * 1000,
+    enabled: !!logId,
+  });
 
   return { history, loading };
 }

@@ -1,4 +1,5 @@
 import { useState, useCallback } from 'react';
+import { useQueryClient } from '@tanstack/react-query';
 import { Link, useParams, useNavigate } from 'react-router-dom';
 import { parse, format } from 'date-fns';
 import { ArrowLeft, BookOpen } from 'lucide-react';
@@ -12,6 +13,7 @@ import { LogEntryCard } from '../components/logs/LogEntryCard';
 export function DayPage() {
   const { date } = useParams<{ date: string }>();
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
 
   const parsedDate = date ? parse(date, 'yyyy-MM-dd', new Date()) : new Date();
   const displayDate = format(parsedDate, 'EEEE, MMMM d');
@@ -31,6 +33,7 @@ export function DayPage() {
       });
       try {
         await habitsApi.complete(habitId, localDate, note);
+        queryClient.invalidateQueries({ queryKey: ['year-heatmap-habits-range'] });
       } catch {
         setCompletions((prev) => prev.filter((c) => c.habitId !== habitId));
       }
@@ -38,12 +41,13 @@ export function DayPage() {
       setCompletions((prev) => prev.filter((c) => c.habitId !== habitId));
       try {
         await habitsApi.uncomplete(habitId, localDate);
+        queryClient.invalidateQueries({ queryKey: ['year-heatmap-habits-range'] });
       } catch {
         const restored: Completion = { habitId, date: localDate, completedAt: new Date().toISOString() };
         setCompletions((prev) => [...prev, restored]);
       }
     }
-  }, [localDate, setCompletions]);
+  }, [localDate, setCompletions, queryClient]);
 
   const completionMap = new Map(completions.map((c) => [c.habitId, c]));
   const completedCount = completions.length;

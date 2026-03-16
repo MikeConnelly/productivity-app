@@ -3,12 +3,15 @@ import { useParams, Link } from 'react-router-dom';
 import { ArrowLeft, Check, Loader2 } from 'lucide-react';
 import { format, parseISO } from 'date-fns';
 import MDEditor from '@uiw/react-md-editor';
+import { useQueryClient } from '@tanstack/react-query';
 import { useJournalEntry } from '../hooks/useJournal';
 import { journalApi } from '../api/journal';
+import { queryKeys } from '../lib/queryKeys';
 import { useTheme } from '../context/ThemeContext';
 
 export function JournalEntryPage() {
   const { date } = useParams<{ date: string }>();
+  const queryClient = useQueryClient();
   const { entry, loading, setEntry } = useJournalEntry(date ?? '');
   const [content, setContent] = useState('');
   const [saveStatus, setSaveStatus] = useState<'idle' | 'saving' | 'saved'>('idle');
@@ -29,12 +32,13 @@ export function JournalEntryPage() {
     try {
       const saved = await journalApi.upsert(date, value);
       setEntry(saved);
+      queryClient.invalidateQueries({ queryKey: queryKeys.journalEntries });
       setSaveStatus('saved');
       setTimeout(() => setSaveStatus('idle'), 2000);
     } catch {
       setSaveStatus('idle');
     }
-  }, [date, setEntry]);
+  }, [date, setEntry, queryClient]);
 
   const handleChange = (value?: string) => {
     const v = value ?? '';

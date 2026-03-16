@@ -1,4 +1,5 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useCallback } from 'react';
+import { useQueryClient } from '@tanstack/react-query';
 import { ChevronLeft, ChevronRight, CalendarDays, Activity } from 'lucide-react';
 import {
   startOfMonth,
@@ -11,6 +12,7 @@ import {
   subMonths,
 } from 'date-fns';
 import { useHabits } from '../hooks/useHabits';
+import { habitsApi, type Completion } from '../api/habits';
 import { useLogs } from '../hooks/useLogs';
 import { useMonthCompletions } from '../hooks/useMonthCompletions';
 import { useYearHeatmap, type HeatmapMode } from '../hooks/useYearHeatmap';
@@ -37,9 +39,11 @@ export function CalendarPage() {
   const year = currentMonth.getFullYear();
   const month = currentMonth.getMonth();
 
+  const queryClient = useQueryClient();
+
   const { habits } = useHabits();
   const { logs } = useLogs();
-  const { completions, loading: calendarLoading } = useMonthCompletions(year, month);
+  const { completions, setCompletions, loading: calendarLoading } = useMonthCompletions(year, month);
   const { data: heatmapData, loading: heatmapLoading } = useYearHeatmap(
     mode, selectedId, habits.length, logs.length,
   );
@@ -51,6 +55,30 @@ export function CalendarPage() {
       return logs.find((l) => l.logId === selectedId)?.color ?? '#6366f1';
     return '#6366f1';
   }, [mode, selectedId, habits, logs]);
+
+  const handleToggle = useCallback(async (habitId: string, completed: boolean, date: string, note?: string) => {
+    if (completed) {
+      setCompletions((prev) => {
+        const filtered = prev.filter((c) => !(c.habitId === habitId && c.date === date));
+        return [...filtered, { habitId, date, completedAt: new Date().toISOString(), note }];
+      });
+      try {
+        await habitsApi.complete(habitId, date, note);
+        queryClient.invalidateQueries({ queryKey: ['year-heatmap-habits-range'] });
+      } catch {
+        setCompletions((prev) => prev.filter((c) => !(c.habitId === habitId && c.date === date)));
+      }
+    } else {
+      setCompletions((prev) => prev.filter((c) => !(c.habitId === habitId && c.date === date)));
+      try {
+        await habitsApi.uncomplete(habitId, date);
+        queryClient.invalidateQueries({ queryKey: ['year-heatmap-habits-range'] });
+      } catch {
+        const restored: Completion = { habitId, date, completedAt: new Date().toISOString() };
+        setCompletions((prev) => [...prev, restored]);
+      }
+    }
+  }, [setCompletions, queryClient]);
 
   const dayLevelMap = useMemo(() => {
     const map = new Map<string, 0 | 1 | 2 | 3 | 4>();
@@ -242,6 +270,7 @@ export function CalendarPage() {
                 habits={habits}
                 completions={selectedCompletions}
                 logs={logs}
+                onToggle={handleToggle}
               />
             ) : (
               filterPanel

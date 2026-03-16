@@ -1,48 +1,37 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { habitsApi, type Habit, type Completion } from '../api/habits';
+import { queryKeys } from '../lib/queryKeys';
 
 export function useHabits() {
-  const [habits, setHabits] = useState<Habit[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const queryClient = useQueryClient();
+  const { data: habits = [], isLoading: loading, error } = useQuery({
+    queryKey: queryKeys.habits,
+    queryFn: () => habitsApi.list().then((d) => d.filter((h) => h.active)),
+    staleTime: 5 * 60 * 1000,
+  });
 
-  const fetch = useCallback(async () => {
-    try {
-      setLoading(true);
-      const data = await habitsApi.list();
-      setHabits(data.filter((h) => h.active));
-    } catch {
-      setError('Failed to load habits');
-    } finally {
-      setLoading(false);
-    }
-  }, []);
+  const setHabits = (updater: Habit[] | ((prev: Habit[]) => Habit[])) =>
+    queryClient.setQueryData<Habit[]>(queryKeys.habits, (prev) => {
+      if (typeof updater === 'function') return updater(prev ?? []);
+      return updater;
+    });
 
-  useEffect(() => {
-    fetch();
-  }, [fetch]);
-
-  return { habits, loading, error, refetch: fetch, setHabits };
+  return { habits, loading, error: error ? 'Failed to load habits' : null, setHabits };
 }
 
 export function useTodayCompletions(date: string) {
-  const [completions, setCompletions] = useState<Completion[]>([]);
-  const [loading, setLoading] = useState(true);
+  const queryClient = useQueryClient();
+  const { data: completions = [], isLoading: loading } = useQuery({
+    queryKey: queryKeys.completions(date),
+    queryFn: () => habitsApi.getDayCompletions(date),
+    staleTime: 1 * 60 * 1000,
+  });
 
-  const fetch = useCallback(async () => {
-    try {
-      const data = await habitsApi.getDayCompletions(date);
-      setCompletions(data);
-    } catch {
-      setCompletions([]);
-    } finally {
-      setLoading(false);
-    }
-  }, [date]);
+  const setCompletions = (updater: Completion[] | ((prev: Completion[]) => Completion[])) =>
+    queryClient.setQueryData<Completion[]>(queryKeys.completions(date), (prev) => {
+      if (typeof updater === 'function') return updater(prev ?? []);
+      return updater;
+    });
 
-  useEffect(() => {
-    fetch();
-  }, [fetch]);
-
-  return { completions, loading, setCompletions, refetch: fetch };
+  return { completions, loading, setCompletions };
 }

@@ -1,29 +1,25 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { startOfMonth, endOfMonth, format } from 'date-fns';
 import { habitsApi, type Completion } from '../api/habits';
+import { queryKeys } from '../lib/queryKeys';
 
 export function useMonthCompletions(year: number, month: number) {
-  const [completions, setCompletions] = useState<Completion[]>([]);
-  const [loading, setLoading] = useState(true);
+  const queryClient = useQueryClient();
+  const monthDate = new Date(year, month, 1);
+  const from = format(startOfMonth(monthDate), 'yyyy-MM-dd');
+  const to = format(endOfMonth(monthDate), 'yyyy-MM-dd');
 
-  const fetch = useCallback(async () => {
-    try {
-      setLoading(true);
-      const monthDate = new Date(year, month, 1);
-      const from = format(startOfMonth(monthDate), 'yyyy-MM-dd');
-      const to = format(endOfMonth(monthDate), 'yyyy-MM-dd');
-      const data = await habitsApi.getCompletionsRange(from, to);
-      setCompletions(data);
-    } catch {
-      setCompletions([]);
-    } finally {
-      setLoading(false);
-    }
-  }, [year, month]);
+  const { data: completions = [], isLoading: loading } = useQuery({
+    queryKey: queryKeys.completionsRange(from, to),
+    queryFn: () => habitsApi.getCompletionsRange(from, to),
+    staleTime: 2 * 60 * 1000,
+  });
 
-  useEffect(() => {
-    fetch();
-  }, [fetch]);
+  const setCompletions = (updater: Completion[] | ((prev: Completion[]) => Completion[])) =>
+    queryClient.setQueryData<Completion[]>(queryKeys.completionsRange(from, to), (prev) => {
+      if (typeof updater === 'function') return updater(prev ?? []);
+      return updater;
+    });
 
-  return { completions, loading, refetch: fetch };
+  return { completions, setCompletions, loading };
 }

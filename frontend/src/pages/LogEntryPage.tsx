@@ -2,12 +2,16 @@ import { useState, useEffect, useRef, useCallback } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { ArrowLeft, Check, Loader2 } from 'lucide-react';
 import { format, parseISO } from 'date-fns';
-import { useLogs } from '../hooks/useLogs';
+import { useQueryClient } from '@tanstack/react-query';
+import { useLogs, useDayLogEntries } from '../hooks/useLogs';
 import { logsApi } from '../api/logs';
+import { queryKeys } from '../lib/queryKeys';
 
 export function LogEntryPage() {
   const { logId, date } = useParams<{ logId: string; date: string }>();
+  const queryClient = useQueryClient();
   const { logs, loading: logsLoading } = useLogs();
+  const { logEntries, loading: entryLoading, setLogEntries } = useDayLogEntries(date ?? '');
   const [content, setContent] = useState('');
   const [saveStatus, setSaveStatus] = useState<'idle' | 'saving' | 'saved'>('idle');
   const saveTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -15,27 +19,35 @@ export function LogEntryPage() {
 
   const log = logs.find((l) => l.logId === logId);
 
+  // Initialize content from cache
   useEffect(() => {
-    if (!logId || !date || initialized.current) return;
-    initialized.current = true;
-    logsApi.getEntry(logId, date).then((entry) => {
-      setContent(entry.content);
-    }).catch(() => {
-      // No entry yet, start empty
-    });
-  }, [logId, date]);
+    if (!entryLoading && !initialized.current) {
+      initialized.current = true;
+      const cached = logEntries.find((e) => e.logId === logId);
+      if (cached) {
+        setContent(cached.content);
+      }
+    }
+  }, [entryLoading, logEntries, logId]);
 
   const save = useCallback(async (value: string) => {
     if (!logId || !date) return;
     setSaveStatus('saving');
     try {
-      await logsApi.upsertEntry(logId, date, value);
+      const saved = await logsApi.upsertEntry(logId, date, value);
+      setLogEntries((prev) => {
+        const exists = prev.some((e) => e.logId === logId);
+        if (exists) return prev.map((e) => (e.logId === logId ? saved : e));
+        return [...prev, saved];
+      });
+      queryClient.invalidateQueries({ queryKey: ['year-heatmap-logs-range'] });
+      queryClient.invalidateQueries({ queryKey: queryKeys.logHistory(logId) });
       setSaveStatus('saved');
       setTimeout(() => setSaveStatus('idle'), 2000);
     } catch {
       setSaveStatus('idle');
     }
-  }, [logId, date]);
+  }, [logId, date, setLogEntries, queryClient]);
 
   const handleChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     const v = e.target.value;

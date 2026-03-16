@@ -1,8 +1,10 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useQuery } from '@tanstack/react-query';
+import { useMemo } from 'react';
 import { subYears, format } from 'date-fns';
 import { habitsApi } from '../api/habits';
 import { logsApi } from '../api/logs';
 import { journalApi } from '../api/journal';
+import { queryKeys } from '../lib/queryKeys';
 
 export type HeatmapMode = 'habits' | 'logs' | 'journal';
 
@@ -43,76 +45,85 @@ export function useYearHeatmap(
   totalHabits: number,
   totalLogs: number,
 ): { data: CalendarDay[]; loading: boolean } {
-  const [data, setData] = useState<CalendarDay[]>([]);
-  const [loading, setLoading] = useState(true);
+  // Stable date references — computed once on mount
+  const today = useMemo(() => new Date(), []);
+  const yearAgo = useMemo(() => subYears(today, 1), [today]);
+  const from = useMemo(() => format(yearAgo, 'yyyy-MM-dd'), [yearAgo]);
+  const to = useMemo(() => format(today, 'yyyy-MM-dd'), [today]);
 
-  const fetch = useCallback(async () => {
-    try {
-      setLoading(true);
-      const today = new Date();
-      const yearAgo = subYears(today, 1);
-      const from = format(yearAgo, 'yyyy-MM-dd');
-      const to = format(today, 'yyyy-MM-dd');
+  const habitsRangeQuery = useQuery({
+    queryKey: queryKeys.yearHeatmapHabitsRange(from, to),
+    queryFn: () => habitsApi.getCompletionsRange(from, to),
+    enabled: mode === 'habits',
+    staleTime: 5 * 60 * 1000,
+  });
 
-      if (mode === 'habits') {
-        if (selectedId) {
-          const history = await habitsApi.getHistory(selectedId, from, to);
-          const dateMap = new Map<string, number>();
-          for (const c of history) dateMap.set(c.date, (dateMap.get(c.date) ?? 0) + 1);
-          setData(buildDayArray(dateMap, yearAgo, today, (count) => (count > 0 ? 4 : 0)));
-        } else {
-          const completions = await habitsApi.getCompletionsRange(from, to);
-          // count unique habits per day
-          const dayHabits = new Map<string, Set<string>>();
-          for (const c of completions) {
-            if (!dayHabits.has(c.date)) dayHabits.set(c.date, new Set());
-            dayHabits.get(c.date)!.add(c.habitId);
-          }
-          const dateMap = new Map<string, number>();
-          for (const [date, ids] of dayHabits) dateMap.set(date, ids.size);
-          const total = totalHabits;
-          setData(buildDayArray(dateMap, yearAgo, today, (count) =>
-            total === 0 ? 0 : ratioToLevel(count / total)
-          ));
-        }
-      } else if (mode === 'logs') {
-        if (selectedId) {
-          const history = await logsApi.getHistory(selectedId, from, to);
-          const dateMap = new Map<string, number>();
-          for (const e of history) dateMap.set(e.date, (dateMap.get(e.date) ?? 0) + 1);
-          setData(buildDayArray(dateMap, yearAgo, today, (count) => (count > 0 ? 4 : 0)));
-        } else {
-          const entries = await logsApi.getEntriesRange(from, to);
-          // count unique logs per day
-          const dayLogs = new Map<string, Set<string>>();
-          for (const e of entries) {
-            if (!dayLogs.has(e.date)) dayLogs.set(e.date, new Set());
-            dayLogs.get(e.date)!.add(e.logId);
-          }
-          const dateMap = new Map<string, number>();
-          for (const [date, ids] of dayLogs) dateMap.set(date, ids.size);
-          const total = totalLogs;
-          setData(buildDayArray(dateMap, yearAgo, today, (count) =>
-            total === 0 ? 0 : ratioToLevel(count / total)
-          ));
-        }
-      } else {
-        // journal
-        const entries = await journalApi.list();
+  const logsRangeQuery = useQuery({
+    queryKey: queryKeys.yearHeatmapLogsRange(from, to),
+    queryFn: () => logsApi.getEntriesRange(from, to),
+    enabled: mode === 'logs',
+    staleTime: 5 * 60 * 1000,
+  });
+
+  const journalQuery = useQuery({
+    queryKey: queryKeys.journalEntries,
+    queryFn: () => journalApi.list(),
+    enabled: mode === 'journal',
+    staleTime: 5 * 60 * 1000,
+  });
+
+  const data = useMemo<CalendarDay[]>(() => {
+    if (mode === 'habits') {
+      const completions = habitsRangeQuery.data ?? [];
+      const filtered = selectedId ? completions.filter((c) => c.habitId === selectedId) : completions;
+      if (selectedId) {
         const dateMap = new Map<string, number>();
-        for (const e of entries) dateMap.set(e.date, 1);
-        setData(buildDayArray(dateMap, yearAgo, today, (count) => (count > 0 ? 4 : 0)));
+        for (const c of filtered) dateMap.set(c.date, 1);
+        return buildDayArray(dateMap, yearAgo, today, (count) => (count > 0 ? 4 : 0));
+      } else {
+        const dayHabits = new Map<string, Set<string>>();
+        for (const c of filtered) {
+          if (!dayHabits.has(c.date)) dayHabits.set(c.date, new Set());
+          dayHabits.get(c.date)!.add(c.habitId);
+        }
+        const dateMap = new Map<string, number>();
+        for (const [date, ids] of dayHabits) dateMap.set(date, ids.size);
+        return buildDayArray(dateMap, yearAgo, today, (count) =>
+          totalHabits === 0 ? 0 : ratioToLevel(count / totalHabits)
+        );
       }
-    } catch {
-      setData([]);
-    } finally {
-      setLoading(false);
+    } else if (mode === 'logs') {
+      const entries = logsRangeQuery.data ?? [];
+      const filtered = selectedId ? entries.filter((e) => e.logId === selectedId) : entries;
+      if (selectedId) {
+        const dateMap = new Map<string, number>();
+        for (const e of filtered) dateMap.set(e.date, 1);
+        return buildDayArray(dateMap, yearAgo, today, (count) => (count > 0 ? 4 : 0));
+      } else {
+        const dayLogs = new Map<string, Set<string>>();
+        for (const e of filtered) {
+          if (!dayLogs.has(e.date)) dayLogs.set(e.date, new Set());
+          dayLogs.get(e.date)!.add(e.logId);
+        }
+        const dateMap = new Map<string, number>();
+        for (const [date, ids] of dayLogs) dateMap.set(date, ids.size);
+        return buildDayArray(dateMap, yearAgo, today, (count) =>
+          totalLogs === 0 ? 0 : ratioToLevel(count / totalLogs)
+        );
+      }
+    } else {
+      // journal
+      const entries = journalQuery.data ?? [];
+      const dateMap = new Map<string, number>();
+      for (const e of entries) dateMap.set(e.date, 1);
+      return buildDayArray(dateMap, yearAgo, today, (count) => (count > 0 ? 4 : 0));
     }
-  }, [mode, selectedId, totalHabits, totalLogs]);
+  }, [mode, selectedId, totalHabits, totalLogs, habitsRangeQuery.data, logsRangeQuery.data, journalQuery.data, yearAgo, today]);
 
-  useEffect(() => {
-    fetch();
-  }, [fetch]);
+  const loading =
+    (mode === 'habits' && habitsRangeQuery.isLoading) ||
+    (mode === 'logs' && logsRangeQuery.isLoading) ||
+    (mode === 'journal' && journalQuery.isLoading);
 
   return { data, loading };
 }
