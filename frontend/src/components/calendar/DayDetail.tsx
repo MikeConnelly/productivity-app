@@ -3,7 +3,6 @@ import { Expand } from 'lucide-react';
 import { type Habit, type Completion } from '../../api/habits';
 import { type Log } from '../../api/logs';
 import { useDayLogEntries } from '../../hooks/useLogs';
-import { useJournalEntry } from '../../hooks/useJournal';
 
 interface DayDetailProps {
   date: string;
@@ -15,8 +14,7 @@ interface DayDetailProps {
 
 export function DayDetail({ date, habits, completions, logs, onToggle }: DayDetailProps) {
   const { logEntries, loading: logEntriesLoading } = useDayLogEntries(date);
-  const { entry: journal, loading: journalLoading } = useJournalEntry(date);
-  const loadingDetail = logEntriesLoading || journalLoading;
+  const loadingDetail = logEntriesLoading;
 
   const completionMap = new Map(completions.map((c) => [c.habitId, c]));
 
@@ -122,27 +120,6 @@ export function DayDetail({ date, habits, completions, logs, onToggle }: DayDeta
         )}
       </section>
 
-      {/* Journal */}
-      <section>
-        <h4 className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-2">Journal</h4>
-        {loadingDetail ? (
-          <p className="text-sm text-gray-400 dark:text-gray-500">Loading...</p>
-        ) : journal ? (
-          <div>
-            <p className="text-sm text-gray-600 dark:text-gray-400 line-clamp-2">{journal.content}</p>
-            <Link to={`/journal/${date}`} className="text-xs text-indigo-600 hover:underline mt-1 inline-block">
-              Open entry →
-            </Link>
-          </div>
-        ) : (
-          <div>
-            <p className="text-sm text-gray-400 dark:text-gray-500">No entry</p>
-            <Link to={`/journal/${date}`} className="text-xs text-indigo-600 hover:underline mt-1 inline-block">
-              Write entry →
-            </Link>
-          </div>
-        )}
-      </section>
     </div>
   );
 }

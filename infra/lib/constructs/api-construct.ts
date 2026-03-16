@@ -48,10 +48,6 @@ export class ApiConstruct extends Construct {
       getHabitHistory: makeHandler('getHabitHistory', 'habits/getHabitHistory'),
       getDayCompletions: makeHandler('getDayCompletions', 'habits/getDayCompletions'),
       getCompletionsRange: makeHandler('getCompletionsRange', 'habits/getCompletionsRange'),
-      listJournalEntries: makeHandler('listJournalEntries', 'journal/listEntries'),
-      getJournalEntry: makeHandler('getJournalEntry', 'journal/getEntry'),
-      upsertJournalEntry: makeHandler('upsertJournalEntry', 'journal/upsertEntry'),
-      deleteJournalEntry: makeHandler('deleteJournalEntry', 'journal/deleteEntry'),
       listLogs: makeHandler('listLogs', 'logs/listLogs'),
       createLog: makeHandler('createLog', 'logs/createLog'),
       updateLog: makeHandler('updateLog', 'logs/updateLog'),
@@ -116,16 +112,6 @@ export class ApiConstruct extends Construct {
     // /completions/range
     const completionsRangeResource = completionsRoot.addResource('range');
     completionsRangeResource.addMethod('GET', new apigateway.LambdaIntegration(handlers.getCompletionsRange), authOptions);
-
-    // /journal
-    const journalResource = api.root.addResource('journal');
-    journalResource.addMethod('GET', new apigateway.LambdaIntegration(handlers.listJournalEntries), authOptions);
-
-    // /journal/{date}
-    const journalByDate = journalResource.addResource('{date}');
-    journalByDate.addMethod('GET', new apigateway.LambdaIntegration(handlers.getJournalEntry), authOptions);
-    journalByDate.addMethod('PUT', new apigateway.LambdaIntegration(handlers.upsertJournalEntry), authOptions);
-    journalByDate.addMethod('DELETE', new apigateway.LambdaIntegration(handlers.deleteJournalEntry), authOptions);
 
     // /logs
     const logsResource = api.root.addResource('logs');

@@ -1,12 +1,11 @@
 import { Link, useLocation } from 'react-router-dom';
-import { BookOpen, LayoutDashboard, LogOut, CalendarDays, Sun, Moon } from 'lucide-react';
+import { LayoutDashboard, LogOut, CalendarDays, Sun, Moon } from 'lucide-react';
 import { signOut } from 'aws-amplify/auth';
 import { useTheme } from '../context/ThemeContext';
 
 const navItems = [
   { to: '/', label: 'Today', icon: LayoutDashboard },
   { to: '/calendar', label: 'Calendar', icon: CalendarDays },
-  { to: '/journal', label: 'Journal', icon: BookOpen },
 ];
 
 interface AppShellProps {

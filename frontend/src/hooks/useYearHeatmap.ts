@@ -3,10 +3,9 @@ import { useMemo } from 'react';
 import { subYears, format } from 'date-fns';
 import { habitsApi } from '../api/habits';
 import { logsApi } from '../api/logs';
-import { journalApi } from '../api/journal';
 import { queryKeys } from '../lib/queryKeys';
 
-export type HeatmapMode = 'habits' | 'logs' | 'journal';
+export type HeatmapMode = 'habits' | 'logs';
 
 export interface CalendarDay {
   date: string;
@@ -65,13 +64,6 @@ export function useYearHeatmap(
     staleTime: 5 * 60 * 1000,
   });
 
-  const journalQuery = useQuery({
-    queryKey: queryKeys.journalEntries,
-    queryFn: () => journalApi.list(),
-    enabled: mode === 'journal',
-    staleTime: 5 * 60 * 1000,
-  });
-
   const data = useMemo<CalendarDay[]>(() => {
     if (mode === 'habits') {
       const completions = habitsRangeQuery.data ?? [];
@@ -111,19 +103,13 @@ export function useYearHeatmap(
           totalLogs === 0 ? 0 : ratioToLevel(count / totalLogs)
         );
       }
-    } else {
-      // journal
-      const entries = journalQuery.data ?? [];
-      const dateMap = new Map<string, number>();
-      for (const e of entries) dateMap.set(e.date, 1);
-      return buildDayArray(dateMap, yearAgo, today, (count) => (count > 0 ? 4 : 0));
     }
-  }, [mode, selectedId, totalHabits, totalLogs, habitsRangeQuery.data, logsRangeQuery.data, journalQuery.data, yearAgo, today]);
+    return [];
+  }, [mode, selectedId, totalHabits, totalLogs, habitsRangeQuery.data, logsRangeQuery.data, yearAgo, today]);
 
   const loading =
     (mode === 'habits' && habitsRangeQuery.isLoading) ||
-    (mode === 'logs' && logsRangeQuery.isLoading) ||
-    (mode === 'journal' && journalQuery.isLoading);
+    (mode === 'logs' && logsRangeQuery.isLoading);
 
   return { data, loading };
 }

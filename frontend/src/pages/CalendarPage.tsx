@@ -26,7 +26,6 @@ const DAY_HEADERS = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
 const CATEGORY_TABS: { key: HeatmapMode; label: string }[] = [
   { key: 'habits', label: 'Habits' },
   { key: 'logs', label: 'Logs' },
-  { key: 'journal', label: 'Journal' },
 ];
 
 export function CalendarPage() {
@@ -103,7 +102,7 @@ export function CalendarPage() {
     if (newView === 'heatmap') setSelectedDate(null);
   }
 
-  const filterItems = mode === 'habits' ? habits : mode === 'logs' ? logs : [];
+  const filterItems = mode === 'habits' ? habits : logs;
 
   const filterPanel = (
     <div className="space-y-5">
@@ -156,8 +155,8 @@ export function CalendarPage() {
         </div>
       </div>
 
-      {/* Item filter (Habits / Logs only) */}
-      {mode !== 'journal' && filterItems.length > 0 && (
+      {/* Item filter */}
+      {filterItems.length > 0 && (
         <div>
           <p className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-2">
             {mode === 'habits' ? 'Habit' : 'Log'}
@@ -287,6 +286,7 @@ export function CalendarPage() {
               habits={habits}
               completions={selectedCompletions}
               logs={logs}
+              onToggle={handleToggle}
             />
           )}
         </div>

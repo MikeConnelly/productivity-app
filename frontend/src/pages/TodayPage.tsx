@@ -1,8 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
-import { Link } from 'react-router-dom';
 import { format } from 'date-fns';
-import { BookOpen, Plus, ChevronRight } from 'lucide-react';
+import { Plus } from 'lucide-react';
 import { useHabits, useTodayCompletions } from '../hooks/useHabits';
 import { habitsApi, type Completion } from '../api/habits';
 import { HabitCard } from '../components/habits/HabitCard';
@@ -180,33 +179,6 @@ export function TodayPage() {
             })()}
           </div>
         )}
-      </section>
-
-      <section className="mt-8">
-        <div className="flex items-center justify-between mb-3">
-          <h2 className="text-sm font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide">Journal</h2>
-        </div>
-        <div className="flex items-center gap-3 p-4 bg-white dark:bg-gray-800 rounded-xl shadow-sm">
-          <Link
-            to={`/journal/${today}`}
-            className="flex items-center gap-3 flex-1 min-w-0 hover:opacity-80 transition-opacity"
-          >
-            <div className="p-2 bg-indigo-50 dark:bg-indigo-900/50 rounded-lg flex-shrink-0">
-              <BookOpen size={20} className="text-indigo-600" />
-            </div>
-            <div className="min-w-0">
-              <p className="font-medium text-gray-900 dark:text-gray-100 text-sm">Today's Journal</p>
-              <p className="text-xs text-gray-400 dark:text-gray-500">Write about your day</p>
-            </div>
-          </Link>
-          <Link
-            to="/journal"
-            className="flex-shrink-0 p-2 text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300 transition-colors min-h-[44px] min-w-[44px] flex items-center justify-center"
-            aria-label="View all journal entries"
-          >
-            <ChevronRight size={16} />
-          </Link>
-        </div>
       </section>
 
       {showHabitForm && (

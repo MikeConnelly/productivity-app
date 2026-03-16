@@ -2,7 +2,7 @@ import { useState, useCallback } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 import { Link, useParams, useNavigate } from 'react-router-dom';
 import { parse, format } from 'date-fns';
-import { ArrowLeft, BookOpen } from 'lucide-react';
+import { ArrowLeft } from 'lucide-react';
 import { useHabits, useTodayCompletions } from '../hooks/useHabits';
 import { habitsApi, type Completion } from '../api/habits';
 import { HabitCard } from '../components/habits/HabitCard';
@@ -140,21 +140,6 @@ export function DayPage() {
         )}
       </section>
 
-      <section className="mt-8">
-        <h2 className="text-sm font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-3">Journal</h2>
-        <Link
-          to={`/journal/${date}`}
-          className="flex items-center gap-3 p-4 bg-white dark:bg-gray-800 rounded-xl shadow-sm hover:shadow-md transition-shadow"
-        >
-          <div className="p-2 bg-indigo-50 dark:bg-indigo-900/50 rounded-lg">
-            <BookOpen size={20} className="text-indigo-600" />
-          </div>
-          <div>
-            <p className="font-medium text-gray-900 dark:text-gray-100 text-sm">{displayDate}'s Journal</p>
-            <p className="text-xs text-gray-400 dark:text-gray-500">View or write entry</p>
-          </div>
-        </Link>
-      </section>
     </div>
   );
 }
