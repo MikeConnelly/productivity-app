@@ -11,6 +11,7 @@ import {
   addMonths,
   subMonths,
 } from 'date-fns';
+import { useSettings } from '../context/SettingsContext';
 import { useHabits } from '../hooks/useHabits';
 import { habitsApi, type Completion } from '../api/habits';
 import { useLogs } from '../hooks/useLogs';
@@ -22,13 +23,15 @@ import { ActivityHeatmap } from '../components/habits/ActivityHeatmap';
 
 type ViewMode = 'calendar' | 'heatmap';
 
-const DAY_HEADERS = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+const DAY_HEADERS_SUN = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+const DAY_HEADERS_MON = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
 const CATEGORY_TABS: { key: HeatmapMode; label: string }[] = [
   { key: 'habits', label: 'Habits' },
   { key: 'logs', label: 'Logs' },
 ];
 
 export function CalendarPage() {
+  const { weekStartsOn } = useSettings();
   const [view, setView] = useState<ViewMode>('calendar');
   const [currentMonth, setCurrentMonth] = useState(() => new Date());
   const [selectedDate, setSelectedDate] = useState<string | null>(null);
@@ -86,7 +89,8 @@ export function CalendarPage() {
   }, [heatmapData]);
 
   const days = eachDayOfInterval({ start: startOfMonth(currentMonth), end: endOfMonth(currentMonth) });
-  const firstDayOffset = (getDay(days[0]) + 6) % 7;
+  const DAY_HEADERS = weekStartsOn === 0 ? DAY_HEADERS_SUN : DAY_HEADERS_MON;
+  const firstDayOffset = weekStartsOn === 0 ? getDay(days[0]) : (getDay(days[0]) + 6) % 7;
 
   const selectedCompletions = selectedDate
     ? completions.filter((c) => c.date === selectedDate)

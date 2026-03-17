@@ -8,11 +8,14 @@ import { LogDetailPage } from './pages/LogDetailPage';
 import { LogEntryPage } from './pages/LogEntryPage';
 import { CalendarPage } from './pages/CalendarPage';
 import { DayPage } from './pages/DayPage';
+import { SettingsPage } from './pages/SettingsPage';
 import { ThemeProvider } from './context/ThemeContext';
+import { SettingsProvider } from './context/SettingsContext';
 
 export default function App() {
   return (
     <ThemeProvider>
+    <SettingsProvider>
     <Authenticator>
       {() => (
         <BrowserRouter>
@@ -24,11 +27,13 @@ export default function App() {
               <Route path="/logs/:logId/entries/:date" element={<LogEntryPage />} />
               <Route path="/calendar" element={<CalendarPage />} />
               <Route path="/day/:date" element={<DayPage />} />
+              <Route path="/settings" element={<SettingsPage />} />
             </Routes>
           </AppShell>
         </BrowserRouter>
       )}
     </Authenticator>
+    </SettingsProvider>
     </ThemeProvider>
   );
 }

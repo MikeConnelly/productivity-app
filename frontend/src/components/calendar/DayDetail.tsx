@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom';
-import { Expand } from 'lucide-react';
+import { Expand, MessageSquare } from 'lucide-react';
 import { type Habit, type Completion } from '../../api/habits';
 import { type Log } from '../../api/logs';
 import { useDayLogEntries } from '../../hooks/useLogs';
@@ -100,8 +100,22 @@ export function DayDetail({ date, habits, completions, logs, onToggle }: DayDeta
             {logs.map((log) => {
               const entry = logEntries.find((e) => e.logId === log.logId);
               return (
-                <li key={log.logId} className="flex items-start gap-2 text-sm min-w-0">
-                  <span className="mt-0.5 shrink-0">{log.icon}</span>
+                <li key={log.logId} className="flex items-center gap-2 text-sm min-w-0">
+                  <Link
+                    to={`/logs/${log.logId}/entries/${date}`}
+                    className="flex-shrink-0 w-5 h-5 rounded-md border-2 flex items-center justify-center"
+                    style={{
+                      borderColor: entry ? log.color : '#d1d5db',
+                      backgroundColor: entry ? log.color : 'transparent',
+                    }}
+                    aria-label={`Edit ${log.name} entry`}
+                  >
+                    <MessageSquare
+                      size={12}
+                      className={entry ? 'text-white' : 'text-gray-400 dark:text-gray-500'}
+                      fill={entry ? 'white' : 'none'}
+                    />
+                  </Link>
                   <span className="font-medium text-gray-700 dark:text-gray-300 shrink-0">{log.name}:</span>
                   {entry ? (
                     <Link

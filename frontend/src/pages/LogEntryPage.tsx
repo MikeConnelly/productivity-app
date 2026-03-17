@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
-import { useParams, Link } from 'react-router-dom';
+import { useParams, useNavigate } from 'react-router-dom';
 import { ArrowLeft, Check, Loader2 } from 'lucide-react';
 import { format, parseISO } from 'date-fns';
 import { useQueryClient } from '@tanstack/react-query';
@@ -20,6 +20,7 @@ export function LogEntryPage() {
   const saveTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
   const initialized = useRef(false);
 
+  const navigate = useNavigate();
   const log = logs.find((l) => l.logId === logId);
 
   // Initialize content from cache
@@ -65,9 +66,9 @@ export function LogEntryPage() {
     <div className="max-w-3xl mx-auto px-4 py-6 md:py-8">
       <div className="flex items-center justify-between mb-6">
         <div className="flex items-center gap-3">
-          <Link to={`/logs/${logId}`} className="p-2 text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300 -ml-2">
+          <button onClick={() => navigate(-1)} className="p-2 text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300 -ml-2">
             <ArrowLeft size={20} />
-          </Link>
+          </button>
           <div>
             {!logsLoading && log && (
               <div className="flex items-center gap-2 mb-0.5">

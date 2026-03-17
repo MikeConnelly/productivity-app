@@ -37,7 +37,7 @@ export const habitsApi = {
     ).then((r) => r.data),
 
   uncomplete: (habitId: string, date: string) =>
-    apiClient.delete(`/habits/${habitId}/completions/${date}`),
+    apiClient.delete<{ currentStreak: number; longestStreak: number }>(`/habits/${habitId}/completions/${date}`).then((r) => r.data),
 
   getHistory: (habitId: string, from?: string, to?: string) => {
     const params = from && to ? { from, to } : {};

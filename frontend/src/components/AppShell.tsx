@@ -1,11 +1,11 @@
 import { Link, useLocation } from 'react-router-dom';
-import { LayoutDashboard, LogOut, CalendarDays, Sun, Moon } from 'lucide-react';
+import { LayoutDashboard, LogOut, CalendarDays, Settings } from 'lucide-react';
 import { signOut } from 'aws-amplify/auth';
-import { useTheme } from '../context/ThemeContext';
 
 const navItems = [
   { to: '/', label: 'Today', icon: LayoutDashboard },
   { to: '/calendar', label: 'Calendar', icon: CalendarDays },
+  { to: '/settings', label: 'Settings', icon: Settings },
 ];
 
 interface AppShellProps {
@@ -14,21 +14,13 @@ interface AppShellProps {
 
 export function AppShell({ children }: AppShellProps) {
   const location = useLocation();
-  const { theme, toggleTheme } = useTheme();
 
   return (
     <div className="flex h-[100dvh] bg-gray-50 dark:bg-gray-900">
       {/* Desktop sidebar */}
       <aside className="hidden md:flex md:flex-col md:w-64 md:fixed md:inset-y-0 bg-white dark:bg-gray-800 border-r border-gray-200 dark:border-gray-700">
-        <div className="flex items-center justify-between px-6 py-5 border-b border-gray-200 dark:border-gray-700">
+        <div className="flex items-center px-6 py-5 border-b border-gray-200 dark:border-gray-700">
           <span className="text-xl font-bold text-indigo-600">Productivity</span>
-          <button
-            onClick={toggleTheme}
-            className="p-1.5 rounded-lg text-gray-400 hover:text-gray-600 dark:text-gray-500 dark:hover:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
-            aria-label="Toggle dark mode"
-          >
-            {theme === 'dark' ? <Sun size={16} /> : <Moon size={16} />}
-          </button>
         </div>
         <nav className="flex-1 px-4 py-6 space-y-1">
           {navItems.map(({ to, label, icon: Icon }) => (
@@ -79,13 +71,6 @@ export function AppShell({ children }: AppShellProps) {
               {label}
             </Link>
           ))}
-          <button
-            onClick={toggleTheme}
-            className="flex flex-col items-center gap-1 py-2 px-4 text-xs font-medium text-gray-500 dark:text-gray-400 min-h-[44px] justify-center"
-            aria-label="Toggle dark mode"
-          >
-            {theme === 'dark' ? <Sun size={20} /> : <Moon size={20} />}
-          </button>
         </div>
       </nav>
     </div>

@@ -45,7 +45,8 @@ export function TodayPage() {
         return [...filtered, { habitId, date: today, completedAt: new Date().toISOString(), note }];
       });
       try {
-        await habitsApi.complete(habitId, today, note);
+        const result = await habitsApi.complete(habitId, today, note);
+        setHabits((prev) => prev.map((h) => h.habitId === habitId ? { ...h, currentStreak: result.currentStreak, longestStreak: result.longestStreak } : h));
         queryClient.invalidateQueries({ queryKey: ['year-heatmap-habits-range'] });
         queryClient.invalidateQueries({ queryKey: ['completions-range'] });
       } catch {
@@ -54,7 +55,8 @@ export function TodayPage() {
     } else {
       setCompletions((prev) => prev.filter((c) => c.habitId !== habitId));
       try {
-        await habitsApi.uncomplete(habitId, today);
+        const result = await habitsApi.uncomplete(habitId, today);
+        setHabits((prev) => prev.map((h) => h.habitId === habitId ? { ...h, currentStreak: result.currentStreak, longestStreak: result.longestStreak } : h));
         queryClient.invalidateQueries({ queryKey: ['year-heatmap-habits-range'] });
         queryClient.invalidateQueries({ queryKey: ['completions-range'] });
       } catch {
