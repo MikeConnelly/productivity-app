@@ -140,16 +140,38 @@ export function TodayPage() {
       </section>
 
       <section className="mt-8">
-        <div className="flex items-center justify-between mb-3">
-          <h2 className="text-sm font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide">Daily Logs</h2>
-          <button
-            onClick={() => setShowLogForm(true)}
-            className="flex items-center gap-1 text-xs font-medium text-indigo-600 hover:text-indigo-700"
-          >
-            <Plus size={14} />
-            New Log
-          </button>
-        </div>
+        {(() => {
+          const logCompletedCount = logEntries.length;
+          const logTotalCount = logs.length;
+          const logProgress = logTotalCount > 0 ? (logCompletedCount / logTotalCount) * 100 : 0;
+          return (
+            <div className="mb-3">
+              <div className="flex items-center justify-between">
+                <h2 className="text-sm font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide">Daily Logs</h2>
+                <button
+                  onClick={() => setShowLogForm(true)}
+                  className="flex items-center gap-1 text-xs font-medium text-indigo-600 hover:text-indigo-700"
+                >
+                  <Plus size={14} />
+                  New Log
+                </button>
+              </div>
+              {logTotalCount > 0 && (
+                <>
+                  <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
+                    {logCompletedCount}/{logTotalCount} logs completed
+                  </p>
+                  <div className="mt-2 h-2 bg-gray-100 dark:bg-gray-700 rounded-full overflow-hidden">
+                    <div
+                      className="h-full bg-indigo-500 rounded-full transition-all duration-500"
+                      style={{ width: `${logProgress}%` }}
+                    />
+                  </div>
+                </>
+              )}
+            </div>
+          );
+        })()}
         {logsLoading || logEntriesLoading ? (
           <div className="space-y-3">
             {[1, 2].map((i) => <HabitCardSkeleton key={i} />)}
