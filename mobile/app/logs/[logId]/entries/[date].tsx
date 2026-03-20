@@ -7,6 +7,7 @@ import {
   KeyboardAvoidingView,
   Platform,
   ScrollView,
+  StyleSheet,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useLocalSearchParams, useRouter } from 'expo-router';
@@ -15,6 +16,7 @@ import { ChevronLeft } from 'lucide-react-native';
 import { useLogs } from '../../../../src/hooks/useLogs';
 import { logsApi } from '../../../../src/api/logs';
 import { queryKeys } from '../../../../src/lib/queryKeys';
+import { useTheme } from '../../../../src/context/ThemeContext';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 
 type SaveStatus = 'idle' | 'saving' | 'saved';
@@ -23,6 +25,7 @@ export default function LogEntryEditorScreen() {
   const { logId, date } = useLocalSearchParams<{ logId: string; date: string }>();
   const router = useRouter();
   const queryClient = useQueryClient();
+  const { isDark } = useTheme();
   const { logs } = useLogs();
   const log = logs.find((l) => l.logId === logId);
 
@@ -51,7 +54,6 @@ export default function LogEntryEditorScreen() {
     try {
       const updated = await logsApi.upsertEntry(logId, date, text);
       queryClient.setQueryData(['log-entry', logId, date], updated);
-      // Invalidate history and day entries
       queryClient.invalidateQueries({ queryKey: queryKeys.logHistory(logId) });
       queryClient.invalidateQueries({ queryKey: queryKeys.dayLogEntries(date) });
       setStatus('saved');
@@ -71,39 +73,32 @@ export default function LogEntryEditorScreen() {
     ? format(new Date(date + 'T12:00:00'), 'EEEE, MMMM d, yyyy')
     : '';
 
+  const saveStatusColor =
+    status === 'saving' ? '#6366f1' : status === 'saved' ? '#22c55e' : 'transparent';
+
   return (
-    <SafeAreaView className="flex-1 bg-gray-50 dark:bg-gray-900" edges={['top']}>
+    <SafeAreaView style={[styles.container, { backgroundColor: isDark ? '#111827' : '#f9fafb' }]} edges={['top']}>
       <KeyboardAvoidingView
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-        className="flex-1"
+        style={styles.keyboardView}
       >
         {/* Header */}
-        <View className="flex-row items-center px-4 py-3 border-b border-gray-200 dark:border-gray-700">
+        <View style={[styles.header, { borderBottomColor: isDark ? '#374151' : '#e5e7eb' }]}>
           <Pressable onPress={() => router.back()} hitSlop={8}>
             <ChevronLeft size={22} color="#6366f1" />
           </Pressable>
-          <View className="flex-1 ml-2">
-            <Text className="text-base font-semibold text-gray-900 dark:text-gray-100">
+          <View style={styles.headerTitle}>
+            <Text style={[styles.headerName, { color: isDark ? '#f3f4f6' : '#111827' }]}>
               {log?.icon} {log?.name}
             </Text>
-            <Text className="text-xs text-gray-500 dark:text-gray-400">{displayDate}</Text>
+            <Text style={[styles.headerDate, { color: isDark ? '#9ca3af' : '#6b7280' }]}>{displayDate}</Text>
           </View>
-          <Text
-            className="text-xs"
-            style={{
-              color:
-                status === 'saving'
-                  ? '#6366f1'
-                  : status === 'saved'
-                  ? '#22c55e'
-                  : 'transparent',
-            }}
-          >
+          <Text style={[styles.saveStatus, { color: saveStatusColor }]}>
             {status === 'saving' ? 'Saving…' : status === 'saved' ? 'Saved' : '.'}
           </Text>
         </View>
 
-        <ScrollView className="flex-1" keyboardDismissMode="interactive">
+        <ScrollView style={styles.scrollView} keyboardDismissMode="interactive">
           <TextInput
             value={content}
             onChangeText={handleChange}
@@ -111,8 +106,7 @@ export default function LogEntryEditorScreen() {
             placeholderTextColor="#9ca3af"
             multiline
             textAlignVertical="top"
-            className="flex-1 text-base text-gray-900 dark:text-gray-100 p-4"
-            style={{ minHeight: 400 }}
+            style={[styles.editor, { color: isDark ? '#f3f4f6' : '#111827' }]}
             autoFocus={!entry?.content}
           />
         </ScrollView>
@@ -120,3 +114,26 @@ export default function LogEntryEditorScreen() {
     </SafeAreaView>
   );
 }
+
+const styles = StyleSheet.create({
+  container: { flex: 1 },
+  keyboardView: { flex: 1 },
+  header: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    borderBottomWidth: 1,
+  },
+  headerTitle: { flex: 1, marginLeft: 8 },
+  headerName: { fontSize: 16, fontWeight: '600' },
+  headerDate: { fontSize: 12 },
+  saveStatus: { fontSize: 12 },
+  scrollView: { flex: 1 },
+  editor: {
+    flex: 1,
+    fontSize: 16,
+    padding: 16,
+    minHeight: 400,
+  },
+});

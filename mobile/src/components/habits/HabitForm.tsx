@@ -1,16 +1,10 @@
-import { useCallback, useRef, useState } from 'react';
-import {
-  View,
-  Text,
-  Pressable,
-  ScrollView,
-  Alert,
-} from 'react-native';
+import { useRef, useState } from 'react';
+import { View, Text, Pressable, Alert, StyleSheet } from 'react-native';
 import BottomSheet, {
-  BottomSheetView,
   BottomSheetTextInput,
   BottomSheetScrollView,
 } from '@gorhom/bottom-sheet';
+import { useTheme } from '../../context/ThemeContext';
 import type { Habit } from '../../api/habits';
 
 const ICONS = ['⭐', '💪', '📚', '🧘', '🏃', '💧', '🥗', '😴', '🎯', '🎨', '🎵', '✍️', '🧹', '💊', '🐕', '🌱'];
@@ -24,6 +18,7 @@ interface HabitFormProps {
 }
 
 export function HabitForm({ initial, onSave, onDelete, onClose }: HabitFormProps) {
+  const { isDark } = useTheme();
   const [name, setName] = useState(initial?.name ?? '');
   const [color, setColor] = useState(initial?.color ?? COLORS[0]);
   const [icon, setIcon] = useState(initial?.icon ?? ICONS[0]);
@@ -63,84 +58,69 @@ export function HabitForm({ initial, onSave, onDelete, onClose }: HabitFormProps
       onClose={onClose}
       index={0}
     >
-      <BottomSheetScrollView contentContainerStyle={{ padding: 20, paddingBottom: 40 }}>
-        <Text className="text-lg font-bold text-gray-900 dark:text-gray-100 mb-4">
+      <BottomSheetScrollView contentContainerStyle={styles.scrollContent}>
+        <Text style={[styles.title, { color: isDark ? '#f3f4f6' : '#111827' }]}>
           {initial?.habitId ? 'Edit Habit' : 'New Habit'}
         </Text>
 
-        {/* Name input */}
-        <Text className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Name</Text>
+        <Text style={[styles.label, { color: isDark ? '#d1d5db' : '#374151' }]}>Name</Text>
         <BottomSheetTextInput
           value={name}
           onChangeText={setName}
           placeholder="Habit name…"
           placeholderTextColor="#9ca3af"
-          style={{
-            backgroundColor: '#f3f4f6',
-            borderRadius: 12,
-            padding: 12,
-            fontSize: 16,
-            color: '#111827',
-            marginBottom: 16,
-          }}
+          style={styles.input}
           autoFocus
           returnKeyType="done"
         />
 
-        {/* Icon grid */}
-        <Text className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Icon</Text>
-        <View className="flex-row flex-wrap gap-2 mb-4">
+        <Text style={[styles.label, { color: isDark ? '#d1d5db' : '#374151' }]}>Icon</Text>
+        <View style={styles.iconGrid}>
           {ICONS.map((ic) => (
             <Pressable
               key={ic}
               onPress={() => setIcon(ic)}
-              style={{
-                width: 44,
-                height: 44,
-                alignItems: 'center',
-                justifyContent: 'center',
-                borderRadius: 10,
-                borderWidth: 2,
-                borderColor: icon === ic ? color : 'transparent',
-                backgroundColor: icon === ic ? `${color}20` : '#f3f4f6',
-              }}
+              style={[
+                styles.iconButton,
+                {
+                  borderColor: icon === ic ? color : 'transparent',
+                  backgroundColor: icon === ic ? `${color}20` : '#f3f4f6',
+                },
+              ]}
             >
-              <Text style={{ fontSize: 22 }}>{ic}</Text>
+              <Text style={styles.iconEmoji}>{ic}</Text>
             </Pressable>
           ))}
         </View>
 
-        {/* Color circles */}
-        <Text className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Color</Text>
-        <View className="flex-row gap-3 mb-6">
+        <Text style={[styles.label, { color: isDark ? '#d1d5db' : '#374151' }]}>Color</Text>
+        <View style={styles.colorRow}>
           {COLORS.map((c) => (
             <Pressable
               key={c}
               onPress={() => setColor(c)}
-              style={{
-                width: 32,
-                height: 32,
-                borderRadius: 16,
-                backgroundColor: c,
-                borderWidth: color === c ? 3 : 0,
-                borderColor: '#fff',
-                shadowColor: color === c ? c : 'transparent',
-                shadowOpacity: 0.6,
-                shadowRadius: 4,
-                elevation: color === c ? 4 : 0,
-              }}
+              style={[
+                styles.colorDot,
+                {
+                  backgroundColor: c,
+                  borderWidth: color === c ? 3 : 0,
+                  borderColor: '#fff',
+                  shadowColor: color === c ? c : 'transparent',
+                  shadowOpacity: 0.6,
+                  shadowRadius: 4,
+                  elevation: color === c ? 4 : 0,
+                },
+              ]}
             />
           ))}
         </View>
 
-        {/* Buttons */}
         <Pressable
           onPress={handleSave}
           disabled={saving || !name.trim()}
-          className="py-3.5 rounded-xl items-center mb-3"
-          style={{ backgroundColor: name.trim() ? color : '#e5e7eb' }}
+          style={[styles.saveButton, { backgroundColor: name.trim() ? color : '#e5e7eb' }]}
         >
-          <Text className="text-base font-semibold text-white">
+          <Text style={styles.saveButtonText}>
             {saving ? 'Saving…' : initial?.habitId ? 'Save Changes' : 'Create Habit'}
           </Text>
         </Pressable>
@@ -148,12 +128,42 @@ export function HabitForm({ initial, onSave, onDelete, onClose }: HabitFormProps
         {onDelete && (
           <Pressable
             onPress={handleDelete}
-            className="py-3.5 rounded-xl items-center bg-red-50 dark:bg-red-900/20"
+            style={[styles.deleteButton, { backgroundColor: isDark ? 'rgba(239,68,68,0.15)' : '#fef2f2' }]}
           >
-            <Text className="text-base font-medium text-red-500">Delete Habit</Text>
+            <Text style={styles.deleteButtonText}>Delete Habit</Text>
           </Pressable>
         )}
       </BottomSheetScrollView>
     </BottomSheet>
   );
 }
+
+const styles = StyleSheet.create({
+  scrollContent: { padding: 20, paddingBottom: 40 },
+  title: { fontSize: 18, fontWeight: '700', marginBottom: 16 },
+  label: { fontSize: 14, fontWeight: '500', marginBottom: 4 },
+  input: {
+    backgroundColor: '#f3f4f6',
+    borderRadius: 12,
+    padding: 12,
+    fontSize: 16,
+    color: '#111827',
+    marginBottom: 16,
+  },
+  iconGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginBottom: 16 },
+  iconButton: {
+    width: 44,
+    height: 44,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderRadius: 10,
+    borderWidth: 2,
+  },
+  iconEmoji: { fontSize: 22 },
+  colorRow: { flexDirection: 'row', gap: 12, marginBottom: 24 },
+  colorDot: { width: 32, height: 32, borderRadius: 16 },
+  saveButton: { paddingVertical: 14, borderRadius: 12, alignItems: 'center', marginBottom: 12 },
+  saveButtonText: { fontSize: 16, fontWeight: '600', color: '#fff' },
+  deleteButton: { paddingVertical: 14, borderRadius: 12, alignItems: 'center' },
+  deleteButtonText: { fontSize: 16, fontWeight: '500', color: '#ef4444' },
+});

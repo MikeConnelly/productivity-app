@@ -7,8 +7,10 @@ import {
   Pressable,
   KeyboardAvoidingView,
   Platform,
+  StyleSheet,
 } from 'react-native';
 import { X } from 'lucide-react-native';
+import { useTheme } from '../../context/ThemeContext';
 import type { Habit } from '../../api/habits';
 
 interface NoteModalProps {
@@ -20,24 +22,24 @@ interface NoteModalProps {
 }
 
 export function NoteModal({ habit, existingNote, isCompleted, onSave, onClose }: NoteModalProps) {
+  const { isDark } = useTheme();
   const [note, setNote] = useState(existingNote ?? '');
 
   return (
     <Modal visible animationType="fade" transparent onRequestClose={onClose}>
       <KeyboardAvoidingView
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-        className="flex-1"
+        style={styles.keyboardView}
       >
-        <Pressable className="flex-1 bg-black/50 justify-center px-4" onPress={onClose}>
+        <Pressable style={styles.backdrop} onPress={onClose}>
           <Pressable onPress={(e) => e.stopPropagation()}>
-            <View className="bg-white dark:bg-gray-800 rounded-2xl p-5 shadow-lg">
-              <View className="flex-row items-center justify-between mb-4">
-                <View className="flex-row items-center gap-2">
-                  <Text className="text-xl">{habit.icon}</Text>
+            <View style={[styles.card, { backgroundColor: isDark ? '#1f2937' : '#fff' }]}>
+              <View style={styles.cardHeader}>
+                <View style={styles.habitLabel}>
+                  <Text style={styles.habitIcon}>{habit.icon}</Text>
                   <Text
-                    className="text-base font-semibold text-gray-900 dark:text-gray-100"
+                    style={[styles.habitName, { color: isDark ? '#f3f4f6' : '#111827' }]}
                     numberOfLines={1}
-                    style={{ maxWidth: 220 }}
                   >
                     {habit.name}
                   </Text>
@@ -48,7 +50,10 @@ export function NoteModal({ habit, existingNote, isCompleted, onSave, onClose }:
               </View>
 
               <TextInput
-                className="bg-gray-100 dark:bg-gray-700 rounded-xl p-3 text-gray-900 dark:text-gray-100 min-h-[80px]"
+                style={[
+                  styles.noteInput,
+                  { backgroundColor: isDark ? '#374151' : '#f3f4f6', color: isDark ? '#f3f4f6' : '#111827' },
+                ]}
                 placeholder="Add a note…"
                 placeholderTextColor="#9ca3af"
                 value={note}
@@ -58,21 +63,20 @@ export function NoteModal({ habit, existingNote, isCompleted, onSave, onClose }:
                 textAlignVertical="top"
               />
 
-              <View className="flex-row gap-3 mt-4">
+              <View style={styles.buttonRow}>
                 <Pressable
                   onPress={onClose}
-                  className="flex-1 py-3 rounded-xl bg-gray-100 dark:bg-gray-700 items-center"
+                  style={[styles.cancelButton, { backgroundColor: isDark ? '#374151' : '#f3f4f6' }]}
                 >
-                  <Text className="text-sm font-medium text-gray-600 dark:text-gray-300">
+                  <Text style={[styles.cancelText, { color: isDark ? '#d1d5db' : '#4b5563' }]}>
                     Cancel
                   </Text>
                 </Pressable>
                 <Pressable
                   onPress={() => onSave(note.trim())}
-                  className="flex-1 py-3 rounded-xl items-center"
-                  style={{ backgroundColor: habit.color }}
+                  style={[styles.saveButton, { backgroundColor: habit.color }]}
                 >
-                  <Text className="text-sm font-semibold text-white">
+                  <Text style={styles.saveText}>
                     {isCompleted ? 'Update Note' : 'Complete & Save'}
                   </Text>
                 </Pressable>
@@ -84,3 +88,41 @@ export function NoteModal({ habit, existingNote, isCompleted, onSave, onClose }:
     </Modal>
   );
 }
+
+const styles = StyleSheet.create({
+  keyboardView: { flex: 1 },
+  backdrop: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.5)',
+    justifyContent: 'center',
+    paddingHorizontal: 16,
+  },
+  card: {
+    borderRadius: 16,
+    padding: 20,
+    shadowColor: '#000',
+    shadowOpacity: 0.2,
+    shadowRadius: 8,
+    elevation: 8,
+  },
+  cardHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: 16,
+  },
+  habitLabel: { flexDirection: 'row', alignItems: 'center', gap: 8 },
+  habitIcon: { fontSize: 20 },
+  habitName: { fontSize: 16, fontWeight: '600', maxWidth: 220 },
+  noteInput: {
+    borderRadius: 12,
+    padding: 12,
+    minHeight: 80,
+    fontSize: 14,
+  },
+  buttonRow: { flexDirection: 'row', gap: 12, marginTop: 16 },
+  cancelButton: { flex: 1, paddingVertical: 12, borderRadius: 12, alignItems: 'center' },
+  cancelText: { fontSize: 14, fontWeight: '500' },
+  saveButton: { flex: 1, paddingVertical: 12, borderRadius: 12, alignItems: 'center' },
+  saveText: { fontSize: 14, fontWeight: '600', color: '#fff' },
+});

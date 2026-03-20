@@ -1,4 +1,4 @@
-import { View, Text, FlatList } from 'react-native';
+import { View, Text, FlatList, StyleSheet } from 'react-native';
 import {
   eachDayOfInterval,
   startOfMonth,
@@ -7,6 +7,7 @@ import {
   format,
 } from 'date-fns';
 import { DayCell } from './DayCell';
+import { useTheme } from '../../context/ThemeContext';
 import type { Completion } from '../../api/habits';
 
 const DAY_LABELS_SUN = ['Su', 'Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa'];
@@ -29,16 +30,15 @@ export function MonthGrid({
   onSelectDate,
   weekStartsOn,
 }: MonthGridProps) {
+  const { isDark } = useTheme();
   const dayLabels = weekStartsOn === 1 ? DAY_LABELS_MON : DAY_LABELS_SUN;
   const days = eachDayOfInterval({ start: startOfMonth(month), end: endOfMonth(month) });
 
-  // Build completion count map: date string → count
   const countMap: Record<string, number> = {};
   for (const c of completions) {
     countMap[c.date] = (countMap[c.date] ?? 0) + 1;
   }
 
-  // Leading empty cells
   const firstDayOfWeek = getDay(days[0]);
   const leadingBlanks = (firstDayOfWeek - weekStartsOn + 7) % 7;
   const cells: (Date | null)[] = [
@@ -49,10 +49,10 @@ export function MonthGrid({
   return (
     <View>
       {/* Day labels */}
-      <View className="flex-row mb-1">
+      <View style={styles.labelRow}>
         {dayLabels.map((d) => (
-          <View key={d} style={{ flex: 1, alignItems: 'center' }}>
-            <Text className="text-xs font-medium text-gray-400 dark:text-gray-500">{d}</Text>
+          <View key={d} style={styles.labelCell}>
+            <Text style={[styles.labelText, { color: isDark ? '#6b7280' : '#9ca3af' }]}>{d}</Text>
           </View>
         ))}
       </View>
@@ -64,7 +64,7 @@ export function MonthGrid({
         keyExtractor={(item, i) => item ? format(item, 'yyyy-MM-dd') : `blank-${i}`}
         scrollEnabled={false}
         renderItem={({ item }) => {
-          if (!item) return <View style={{ flex: 1, aspectRatio: 1, margin: 2 }} />;
+          if (!item) return <View style={styles.blankCell} />;
           const dateStr = format(item, 'yyyy-MM-dd');
           return (
             <DayCell
@@ -80,3 +80,10 @@ export function MonthGrid({
     </View>
   );
 }
+
+const styles = StyleSheet.create({
+  labelRow: { flexDirection: 'row', marginBottom: 4 },
+  labelCell: { flex: 1, alignItems: 'center' },
+  labelText: { fontSize: 12, fontWeight: '500' },
+  blankCell: { flex: 1, aspectRatio: 1, margin: 2 },
+});

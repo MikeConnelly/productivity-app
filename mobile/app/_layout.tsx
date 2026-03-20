@@ -1,5 +1,4 @@
 import '../src/lib/amplify';
-import '../src/global.css';
 import { useEffect } from 'react';
 import { View } from 'react-native';
 import { Stack } from 'expo-router';
@@ -12,7 +11,7 @@ import {
   Inter_600SemiBold,
   Inter_700Bold,
 } from '@expo-google-fonts/inter';
-import { ThemeProvider, useTheme } from '../src/context/ThemeContext';
+import { ThemeProvider } from '../src/context/ThemeContext';
 import { SettingsProvider } from '../src/context/SettingsContext';
 
 SplashScreen.preventAutoHideAsync();
@@ -20,10 +19,8 @@ SplashScreen.preventAutoHideAsync();
 const queryClient = new QueryClient();
 
 function RootLayout() {
-  const { isDark } = useTheme();
-
   return (
-    <View className={isDark ? 'dark flex-1' : 'flex-1'}>
+    <View style={{ flex: 1 }}>
       <Stack screenOptions={{ headerShown: false }} />
     </View>
   );

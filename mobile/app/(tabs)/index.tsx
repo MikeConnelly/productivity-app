@@ -6,6 +6,7 @@ import {
   ActivityIndicator,
   Pressable,
   RefreshControl,
+  StyleSheet,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { format } from 'date-fns';
@@ -22,11 +23,13 @@ import { LogEntryCard } from '../../src/components/logs/LogEntryCard';
 import { LogForm } from '../../src/components/logs/LogForm';
 import { ProgressBar } from '../../src/components/ui/ProgressBar';
 import { SectionHeader } from '../../src/components/ui/SectionHeader';
+import { useTheme } from '../../src/context/ThemeContext';
 
 const today = format(new Date(), 'yyyy-MM-dd');
 
 export default function TodayScreen() {
   const queryClient = useQueryClient();
+  const { isDark } = useTheme();
   const { habits, loading: habitsLoading } = useHabits();
   const { completions, setCompletions } = useTodayCompletions(today);
   const { logs, loading: logsLoading } = useLogs();
@@ -51,12 +54,10 @@ export default function TodayScreen() {
     if (!habit) return;
 
     if (completed) {
-      // Optimistic
       const optimistic = { habitId, date: today, completedAt: new Date().toISOString(), note };
       setCompletions((prev) => [...prev.filter((c) => c.habitId !== habitId), optimistic]);
       try {
         const result = await habitsApi.complete(habitId, today, note || undefined);
-        // Update streak in habits cache
         queryClient.setQueryData(queryKeys.habits, (prev: typeof habits) =>
           prev.map((h) =>
             h.habitId === habitId
@@ -79,21 +80,21 @@ export default function TodayScreen() {
   };
 
   return (
-    <SafeAreaView className="flex-1 bg-gray-50 dark:bg-gray-900" edges={['top']}>
+    <SafeAreaView style={[styles.container, { backgroundColor: isDark ? '#111827' : '#f9fafb' }]} edges={['top']}>
       <ScrollView
-        className="flex-1"
-        contentContainerStyle={{ padding: 16 }}
+        style={styles.scroll}
+        contentContainerStyle={styles.scrollContent}
         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
       >
         {/* Header */}
-        <View className="mb-5">
-          <Text className="text-2xl font-bold text-gray-900 dark:text-gray-100">
+        <View style={styles.headerSection}>
+          <Text style={[styles.dateText, { color: isDark ? '#f3f4f6' : '#111827' }]}>
             {format(new Date(), 'EEEE, MMMM d')}
           </Text>
-          <Text className="text-sm text-gray-500 dark:text-gray-400 mt-0.5">
+          <Text style={[styles.countText, { color: isDark ? '#9ca3af' : '#6b7280' }]}>
             {completedCount} of {habits.length} habits done
           </Text>
-          <View className="mt-3">
+          <View style={styles.progressContainer}>
             <ProgressBar value={habits.length > 0 ? completedCount / habits.length : 0} />
           </View>
         </View>
@@ -105,14 +106,14 @@ export default function TodayScreen() {
           onAction={() => setShowHabitForm(true)}
         />
         {habitsLoading ? (
-          <ActivityIndicator color="#6366f1" className="my-4" />
+          <ActivityIndicator color="#6366f1" style={styles.loader} />
         ) : habits.length === 0 ? (
           <Pressable
             onPress={() => setShowHabitForm(true)}
-            className="items-center py-8 bg-white dark:bg-gray-800 rounded-xl mb-4"
+            style={[styles.emptyCard, { backgroundColor: isDark ? '#1f2937' : '#fff' }]}
           >
-            <Text className="text-gray-400 dark:text-gray-500 mb-1">No habits yet</Text>
-            <Text className="text-indigo-500 text-sm font-medium">+ Add your first habit</Text>
+            <Text style={[styles.emptyText, { color: isDark ? '#6b7280' : '#9ca3af' }]}>No habits yet</Text>
+            <Text style={styles.emptyAction}>+ Add your first habit</Text>
           </Pressable>
         ) : (
           habits.map((habit) => (
@@ -126,21 +127,21 @@ export default function TodayScreen() {
         )}
 
         {/* Logs */}
-        <View className="mt-4">
+        <View style={styles.logsSection}>
           <SectionHeader
             title="Logs"
             actionLabel="Add"
             onAction={() => setShowLogForm(true)}
           />
           {logsLoading ? (
-            <ActivityIndicator color="#6366f1" className="my-4" />
+            <ActivityIndicator color="#6366f1" style={styles.loader} />
           ) : logs.length === 0 ? (
             <Pressable
               onPress={() => setShowLogForm(true)}
-              className="items-center py-8 bg-white dark:bg-gray-800 rounded-xl"
+              style={[styles.emptyCard, { backgroundColor: isDark ? '#1f2937' : '#fff' }]}
             >
-              <Text className="text-gray-400 dark:text-gray-500 mb-1">No logs yet</Text>
-              <Text className="text-indigo-500 text-sm font-medium">+ Add your first log</Text>
+              <Text style={[styles.emptyText, { color: isDark ? '#6b7280' : '#9ca3af' }]}>No logs yet</Text>
+              <Text style={styles.emptyAction}>+ Add your first log</Text>
             </Pressable>
           ) : (
             logs.map((log) => (
@@ -154,7 +155,7 @@ export default function TodayScreen() {
           )}
         </View>
 
-        <View className="h-6" />
+        <View style={styles.spacer} />
       </ScrollView>
 
       {showHabitForm && (
@@ -185,3 +186,19 @@ export default function TodayScreen() {
     </SafeAreaView>
   );
 }
+
+const styles = StyleSheet.create({
+  container: { flex: 1 },
+  scroll: { flex: 1 },
+  scrollContent: { padding: 16 },
+  headerSection: { marginBottom: 20 },
+  dateText: { fontSize: 22, fontWeight: '700' },
+  countText: { fontSize: 14, marginTop: 2 },
+  progressContainer: { marginTop: 12 },
+  loader: { marginVertical: 16 },
+  emptyCard: { alignItems: 'center', paddingVertical: 32, borderRadius: 12, marginBottom: 16 },
+  emptyText: { marginBottom: 4 },
+  emptyAction: { color: '#6366f1', fontSize: 14, fontWeight: '500' },
+  logsSection: { marginTop: 16 },
+  spacer: { height: 24 },
+});

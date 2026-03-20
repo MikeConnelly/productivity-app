@@ -1,5 +1,6 @@
-import { View, Text } from 'react-native';
+import { View, Text, StyleSheet } from 'react-native';
 import { Flame, Trophy } from 'lucide-react-native';
+import { useTheme } from '../../context/ThemeContext';
 
 interface StreakBadgeProps {
   currentStreak: number;
@@ -7,18 +8,36 @@ interface StreakBadgeProps {
 }
 
 export function StreakBadge({ currentStreak, longestStreak }: StreakBadgeProps) {
+  const { isDark } = useTheme();
+
   return (
-    <View className="flex-row gap-3">
-      <View className="flex-row items-center gap-1.5 bg-orange-50 dark:bg-orange-900/30 px-3 py-2 rounded-xl">
+    <View style={styles.row}>
+      <View style={[styles.badge, { backgroundColor: isDark ? 'rgba(124,45,18,0.3)' : '#fff7ed' }]}>
         <Flame size={16} color="#f97316" />
-        <Text className="text-sm font-semibold text-orange-500">{currentStreak}</Text>
-        <Text className="text-xs text-orange-400">current</Text>
+        <Text style={styles.currentValue}>{currentStreak}</Text>
+        <Text style={styles.currentLabel}>current</Text>
       </View>
-      <View className="flex-row items-center gap-1.5 bg-yellow-50 dark:bg-yellow-900/30 px-3 py-2 rounded-xl">
+      <View style={[styles.badge, { backgroundColor: isDark ? 'rgba(113,63,18,0.3)' : '#fefce8' }]}>
         <Trophy size={16} color="#eab308" />
-        <Text className="text-sm font-semibold text-yellow-500">{longestStreak}</Text>
-        <Text className="text-xs text-yellow-400">best</Text>
+        <Text style={styles.bestValue}>{longestStreak}</Text>
+        <Text style={styles.bestLabel}>best</Text>
       </View>
     </View>
   );
 }
+
+const styles = StyleSheet.create({
+  row: { flexDirection: 'row', gap: 12 },
+  badge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: 12,
+  },
+  currentValue: { fontSize: 14, fontWeight: '600', color: '#f97316' },
+  currentLabel: { fontSize: 12, color: '#fb923c' },
+  bestValue: { fontSize: 14, fontWeight: '600', color: '#eab308' },
+  bestLabel: { fontSize: 12, color: '#facc15' },
+});
