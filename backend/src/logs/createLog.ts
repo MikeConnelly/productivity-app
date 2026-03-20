@@ -22,6 +22,7 @@ export const handler: APIGatewayProxyHandler = async (event) => {
       color: color ?? '#6366f1',
       icon: icon ?? '📋',
       active: true,
+      position: Date.now(),
       createdAt: now,
       updatedAt: now,
     };

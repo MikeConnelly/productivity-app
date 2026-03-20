@@ -13,6 +13,7 @@ export const handler: APIGatewayProxyHandler = async (event) => {
         ':prefix': 'HABIT#',
       },
     });
+    items.sort((a: any, b: any) => (a.position ?? Date.parse(a.createdAt)) - (b.position ?? Date.parse(b.createdAt)));
     return ok(items);
   } catch (err) {
     console.error(err);

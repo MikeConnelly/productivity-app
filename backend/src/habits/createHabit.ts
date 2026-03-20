@@ -25,6 +25,7 @@ export const handler: APIGatewayProxyHandler = async (event) => {
       active: true,
       currentStreak: 0,
       longestStreak: 0,
+      position: Date.now(),
       createdAt: now,
       updatedAt: now,
     };

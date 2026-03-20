@@ -6,6 +6,7 @@ export interface Log {
   color: string;
   icon: string;
   active: boolean;
+  position?: number;
   createdAt: string;
   updatedAt: string;
 }
@@ -48,4 +49,7 @@ export const logsApi = {
 
   getEntriesRange: (from: string, to: string) =>
     apiClient.get<LogEntry[]>('/log-entries/range', { params: { from, to } }).then((r) => r.data),
+
+  reorder: (logIds: string[]) =>
+    apiClient.put('/logs/reorder', { logIds }),
 };

@@ -8,6 +8,7 @@ export interface Habit {
   active: boolean;
   currentStreak: number;
   longestStreak: number;
+  position?: number;
   createdAt: string;
   updatedAt: string;
 }
@@ -49,4 +50,7 @@ export const habitsApi = {
 
   getCompletionsRange: (from: string, to: string) =>
     apiClient.get<Completion[]>('/completions/range', { params: { from, to } }).then((r) => r.data),
+
+  reorder: (habitIds: string[]) =>
+    apiClient.put('/habits/reorder', { habitIds }),
 };

@@ -48,6 +48,7 @@ export class ApiConstruct extends Construct {
       getHabitHistory: makeHandler('getHabitHistory', 'habits/getHabitHistory'),
       getDayCompletions: makeHandler('getDayCompletions', 'habits/getDayCompletions'),
       getCompletionsRange: makeHandler('getCompletionsRange', 'habits/getCompletionsRange'),
+      reorderHabits: makeHandler('reorderHabits', 'habits/reorderHabits'),
       listLogs: makeHandler('listLogs', 'logs/listLogs'),
       createLog: makeHandler('createLog', 'logs/createLog'),
       updateLog: makeHandler('updateLog', 'logs/updateLog'),
@@ -58,6 +59,7 @@ export class ApiConstruct extends Construct {
       getLogHistory: makeHandler('getLogHistory', 'logs/getLogHistory'),
       getDayLogEntries: makeHandler('getDayLogEntries', 'logs/getDayLogEntries'),
       getLogEntriesRange: makeHandler('getLogEntriesRange', 'logs/getLogEntriesRange'),
+      reorderLogs: makeHandler('reorderLogs', 'logs/reorderLogs'),
     };
 
     const api = new apigateway.RestApi(this, 'Api', {
@@ -88,6 +90,9 @@ export class ApiConstruct extends Construct {
     habitsResource.addMethod('GET', new apigateway.LambdaIntegration(handlers.listHabits), authOptions);
     habitsResource.addMethod('POST', new apigateway.LambdaIntegration(handlers.createHabit), authOptions);
 
+    // /habits/reorder
+    habitsResource.addResource('reorder').addMethod('PUT', new apigateway.LambdaIntegration(handlers.reorderHabits), authOptions);
+
     // /habits/{habitId}
     const habitResource = habitsResource.addResource('{habitId}');
     habitResource.addMethod('PUT', new apigateway.LambdaIntegration(handlers.updateHabit), authOptions);
@@ -117,6 +122,9 @@ export class ApiConstruct extends Construct {
     const logsResource = api.root.addResource('logs');
     logsResource.addMethod('GET', new apigateway.LambdaIntegration(handlers.listLogs), authOptions);
     logsResource.addMethod('POST', new apigateway.LambdaIntegration(handlers.createLog), authOptions);
+
+    // /logs/reorder
+    logsResource.addResource('reorder').addMethod('PUT', new apigateway.LambdaIntegration(handlers.reorderLogs), authOptions);
 
     // /logs/{logId}
     const logResource = logsResource.addResource('{logId}');
