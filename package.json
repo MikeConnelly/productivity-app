@@ -5,10 +5,12 @@
   "workspaces": [
     "frontend",
     "backend",
-    "infra"
+    "infra",
+    "mobile"
   ],
   "scripts": {
     "dev": "npm run dev --workspace=frontend",
+    "mobile": "npm run start --workspace=mobile",
     "build:frontend": "npm run build --workspace=frontend",
     "build:backend": "npm run build --workspace=backend",
     "build:infra": "npm run build --workspace=infra",
@@ -18,5 +20,8 @@
   },
   "engines": {
     "node": ">=20.0.0"
+  },
+  "overrides": {
+    "react-native": "0.81.5"
   }
 }
