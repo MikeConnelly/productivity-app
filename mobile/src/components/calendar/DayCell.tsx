@@ -1,25 +1,20 @@
-import { Pressable, Text, View } from 'react-native';
+import { Pressable, Text } from 'react-native';
 import { format, isToday } from 'date-fns';
 
 interface DayCellProps {
   date: Date;
-  completionCount: number;
-  totalHabits: number;
+  level: 0 | 1 | 2 | 3 | 4;
+  color: string;
   isSelected: boolean;
   onPress: (date: Date) => void;
 }
 
-export function DayCell({ date, completionCount, totalHabits, isSelected, onPress }: DayCellProps) {
-  const today = isToday(date);
-  const ratio = totalHabits > 0 ? completionCount / totalHabits : 0;
+const OPACITY_SUFFIXES = ['', '33', '80', 'BF', 'FF'];
 
-  // Completion shading
-  const getShade = () => {
-    if (ratio === 0) return 'transparent';
-    if (ratio < 0.34) return '#c7d2fe'; // indigo-200
-    if (ratio < 0.67) return '#818cf8'; // indigo-400
-    return '#6366f1';                    // indigo-500
-  };
+export function DayCell({ date, level, color, isSelected, onPress }: DayCellProps) {
+  const today = isToday(date);
+  const bg = level === 0 ? 'transparent' : `${color}${OPACITY_SUFFIXES[level]}`;
+  const textDark = level >= 3;
 
   return (
     <Pressable
@@ -29,18 +24,18 @@ export function DayCell({ date, completionCount, totalHabits, isSelected, onPres
         aspectRatio: 1,
         margin: 2,
         borderRadius: 8,
-        backgroundColor: getShade(),
+        backgroundColor: bg,
         alignItems: 'center',
         justifyContent: 'center',
-        borderWidth: today ? 2 : isSelected ? 2 : 0,
-        borderColor: today ? '#6366f1' : isSelected ? '#f97316' : 'transparent',
+        borderWidth: today || isSelected ? 2 : 0,
+        borderColor: today ? color : isSelected ? '#f97316' : 'transparent',
       }}
     >
       <Text
         style={{
           fontSize: 12,
           fontWeight: today ? '700' : '400',
-          color: ratio >= 0.67 ? '#fff' : '#374151',
+          color: textDark ? '#fff' : '#374151',
         }}
       >
         {format(date, 'd')}

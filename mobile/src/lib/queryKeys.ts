@@ -5,5 +5,6 @@ export const queryKeys = {
   habitHistory: (id: string) => ['habit-history', id] as const,
   logs: ['logs'] as const,
   dayLogEntries: (date: string) => ['day-log-entries', date] as const,
+  logEntriesRange: (from: string, to: string) => ['log-entries-range', from, to] as const,
   logHistory: (id: string) => ['log-history', id] as const,
 };

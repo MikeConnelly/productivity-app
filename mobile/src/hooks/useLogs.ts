@@ -1,4 +1,5 @@
 import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { format, startOfMonth, endOfMonth } from 'date-fns';
 import { logsApi, type Log, type LogEntry } from '../api/logs';
 import { queryKeys } from '../lib/queryKeys';
 
@@ -17,6 +18,17 @@ export function useLogs() {
     });
 
   return { logs, loading, error: error ? 'Failed to load logs' : null, setLogs };
+}
+
+export function useMonthLogEntries(date: Date) {
+  const from = format(startOfMonth(date), 'yyyy-MM-dd');
+  const to = format(endOfMonth(date), 'yyyy-MM-dd');
+  const { data: entries = [], isLoading: loading } = useQuery({
+    queryKey: queryKeys.logEntriesRange(from, to),
+    queryFn: () => logsApi.getEntriesRange(from, to),
+    staleTime: 2 * 60 * 1000,
+  });
+  return { entries, loading };
 }
 
 export function useDayLogEntries(date: string) {
