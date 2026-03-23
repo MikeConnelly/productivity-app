@@ -4,10 +4,12 @@ import { AppState } from 'react-native';
 import { getCurrentUser } from 'aws-amplify/auth';
 import { useQueryClient } from '@tanstack/react-query';
 import { CalendarDays, CheckSquare, Settings } from 'lucide-react-native';
+import { useTheme } from '../../src/context/ThemeContext';
 
 export default function TabsLayout() {
   const router = useRouter();
   const queryClient = useQueryClient();
+  const { isDark } = useTheme();
 
   // Auth guard
   useEffect(() => {
@@ -30,7 +32,8 @@ export default function TabsLayout() {
         tabBarActiveTintColor: '#6366f1',
         tabBarInactiveTintColor: '#9ca3af',
         tabBarStyle: {
-          borderTopColor: '#e5e7eb',
+          backgroundColor: isDark ? '#1f2937' : '#fff',
+          borderTopColor: isDark ? '#374151' : '#e5e7eb',
         },
         headerShown: false,
       }}

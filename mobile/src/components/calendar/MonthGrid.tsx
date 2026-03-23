@@ -45,6 +45,10 @@ export function MonthGrid({
     ...Array.from({ length: leadingBlanks }, () => null),
     ...days,
   ];
+  const remainder = cells.length % 7;
+  if (remainder !== 0) {
+    cells.push(...Array.from({ length: 7 - remainder }, () => null));
+  }
 
   return (
     <View>

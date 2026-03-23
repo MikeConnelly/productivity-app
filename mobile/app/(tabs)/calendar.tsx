@@ -15,9 +15,7 @@ import { useQueryClient } from '@tanstack/react-query';
 
 export default function CalendarScreen() {
   const [currentMonth, setCurrentMonth] = useState(new Date());
-  const [selectedDate, setSelectedDate] = useState<string | null>(
-    format(new Date(), 'yyyy-MM-dd')
-  );
+  const [selectedDate, setSelectedDate] = useState<string | null>(null);
   const { weekStartsOn } = useSettings();
   const { isDark } = useTheme();
   const { habits } = useHabits();
@@ -27,10 +25,6 @@ export default function CalendarScreen() {
   const { completions: dayCompletions, setCompletions: setDayCompletions } = useTodayCompletions(
     selectedDate ?? format(new Date(), 'yyyy-MM-dd')
   );
-
-  const selectedDateCompletions = selectedDate
-    ? completions.filter((c) => c.date === selectedDate)
-    : [];
 
   const handleToggle = async (habitId: string, completed: boolean, note?: string) => {
     if (!selectedDate) return;
@@ -114,25 +108,21 @@ export default function CalendarScreen() {
             <Text style={[styles.dayLabel, { color: isDark ? '#9ca3af' : '#6b7280' }]}>
               {format(new Date(selectedDate + 'T12:00:00'), 'EEEE, MMMM d')}
             </Text>
-            {selectedDateCompletions.length === 0 ? (
+            {habits.length === 0 ? (
               <View style={[styles.emptyCard, { backgroundColor: isDark ? '#1f2937' : '#fff' }]}>
                 <Text style={[styles.emptyText, { color: isDark ? '#6b7280' : '#9ca3af' }]}>
-                  No completions on this day
+                  No habits
                 </Text>
               </View>
             ) : (
-              habits.map((habit) => {
-                const completion = dayCompletions.find((c) => c.habitId === habit.habitId);
-                if (!completion && !selectedDateCompletions.find((c) => c.habitId === habit.habitId)) return null;
-                return (
-                  <HabitCard
-                    key={habit.habitId}
-                    habit={habit}
-                    completion={dayCompletions.find((c) => c.habitId === habit.habitId)}
-                    onToggle={handleToggle}
-                  />
-                );
-              })
+              habits.map((habit) => (
+                <HabitCard
+                  key={habit.habitId}
+                  habit={habit}
+                  completion={dayCompletions.find((c) => c.habitId === habit.habitId)}
+                  onToggle={handleToggle}
+                />
+              ))
             )}
           </View>
         )}
