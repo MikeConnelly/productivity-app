@@ -31,6 +31,15 @@
     },
     "plugins": [
       "expo-router",
+      "./plugins/withFixBundleCompression",
+      [
+        "expo-build-properties",
+        {
+          "android": {
+            "kotlinVersion": "2.1.0"
+          }
+        }
+      ],
       [
         "expo-splash-screen",
         {
