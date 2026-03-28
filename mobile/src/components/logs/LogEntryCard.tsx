@@ -22,7 +22,7 @@ export function LogEntryCard({ log, entry, date }: LogEntryCardProps) {
     >
       {/* MessageSquare "checkbox" */}
       <Pressable
-        onPress={() => router.push(editUrl)}
+        onPress={() => router.push(editUrl as never)}
         style={[
           styles.checkbox,
           {
@@ -41,7 +41,7 @@ export function LogEntryCard({ log, entry, date }: LogEntryCardProps) {
 
       {/* Content — tappable to edit */}
       <Pressable
-        onPress={() => router.push(editUrl)}
+        onPress={() => router.push(editUrl as never)}
         style={styles.contentRow}
       >
         <Text style={styles.icon}>{log.icon}</Text>
@@ -58,7 +58,13 @@ export function LogEntryCard({ log, entry, date }: LogEntryCardProps) {
         </View>
       </Pressable>
 
-      <ChevronRight size={18} color="#9ca3af" />
+      <Pressable
+        onPress={() => router.push(`/logs/${log.logId}` as never)}
+        style={[styles.historyButton, { backgroundColor: isDark ? '#374151' : '#f3f4f6' }]}
+        hitSlop={4}
+      >
+        <ChevronRight size={18} color={isDark ? '#9ca3af' : '#6b7280'} />
+      </Pressable>
     </View>
   );
 }
@@ -76,6 +82,14 @@ const styles = StyleSheet.create({
     elevation: 1,
     marginBottom: 8,
     borderLeftWidth: 4,
+  },
+  historyButton: {
+    width: 36,
+    height: 36,
+    borderRadius: 8,
+    alignItems: 'center',
+    justifyContent: 'center',
+    flexShrink: 0,
   },
   checkbox: {
     width: 28,

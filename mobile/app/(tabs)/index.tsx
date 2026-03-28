@@ -186,6 +186,20 @@ export default function TodayScreen() {
             onSecondAction={logs.length > 1 ? () => setReorderingLogs((v) => !v) : undefined}
             secondActionActive={reorderingLogs}
           />
+          {logs.length > 0 && (() => {
+            const logCompletedCount = entries.filter((e) => !!e.content).length;
+            const logTotalCount = logs.length;
+            return (
+              <View style={styles.logProgressSection}>
+                <Text style={[styles.countText, { color: isDark ? '#9ca3af' : '#6b7280' }]}>
+                  {logCompletedCount} of {logTotalCount} logs done
+                </Text>
+                <View style={styles.progressContainer}>
+                  <ProgressBar value={logTotalCount > 0 ? logCompletedCount / logTotalCount : 0} />
+                </View>
+              </View>
+            );
+          })()}
           {logsLoading ? (
             <ActivityIndicator color="#6366f1" style={styles.loader} />
           ) : logs.length === 0 ? (
@@ -276,6 +290,7 @@ const styles = StyleSheet.create({
   emptyText: { marginBottom: 4 },
   emptyAction: { color: '#6366f1', fontSize: 14, fontWeight: '500' },
   logsSection: { marginTop: 16 },
+  logProgressSection: { marginBottom: 12 },
   spacer: { height: 24 },
   reorderRow: { flexDirection: 'row', alignItems: 'center', gap: 8 },
   reorderButtons: { flexDirection: 'column', alignItems: 'center', gap: 2 },

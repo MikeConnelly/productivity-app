@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef } from 'react';
 import { X } from 'lucide-react';
 import Picker from '@emoji-mart/react';
 import data from '@emoji-mart/data';
@@ -19,17 +19,6 @@ export function LogForm({ log, onSave, onClose }: LogFormProps) {
   const [saving, setSaving] = useState(false);
   const [pickerOpen, setPickerOpen] = useState(false);
   const pickerRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    if (!pickerOpen) return;
-    function handleClick(e: MouseEvent) {
-      if (pickerRef.current && !pickerRef.current.contains(e.target as Node)) {
-        setPickerOpen(false);
-      }
-    }
-    document.addEventListener('mousedown', handleClick);
-    return () => document.removeEventListener('mousedown', handleClick);
-  }, [pickerOpen]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -71,16 +60,17 @@ export function LogForm({ log, onSave, onClose }: LogFormProps) {
 
           <div>
             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Icon</label>
-            <div className="relative" ref={pickerRef}>
-              <button
-                type="button"
-                onClick={() => setPickerOpen((o) => !o)}
-                className="w-12 h-12 text-2xl rounded-xl border-2 border-gray-200 dark:border-gray-600 hover:border-indigo-400 flex items-center justify-center transition-colors"
-              >
-                {icon}
-              </button>
-              {pickerOpen && (
-                <div className="absolute top-14 left-0 z-10">
+            <button
+              type="button"
+              onClick={() => setPickerOpen((o) => !o)}
+              className="w-12 h-12 text-2xl rounded-xl border-2 border-gray-200 dark:border-gray-600 hover:border-indigo-400 flex items-center justify-center transition-colors"
+            >
+              {icon}
+            </button>
+            {pickerOpen && (
+              <div className="fixed inset-0 z-[60] flex items-center justify-center p-4" ref={pickerRef}>
+                <div className="absolute inset-0 bg-black/30" onClick={() => setPickerOpen(false)} />
+                <div className="relative">
                   <Picker
                     data={data}
                     onEmojiSelect={(e: { native: string }) => {
@@ -92,8 +82,8 @@ export function LogForm({ log, onSave, onClose }: LogFormProps) {
                     skinTonePosition="none"
                   />
                 </div>
-              )}
-            </div>
+              </div>
+            )}
           </div>
 
           <div>
