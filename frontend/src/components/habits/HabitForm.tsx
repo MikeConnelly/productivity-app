@@ -1,9 +1,10 @@
-import { useState } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { X } from 'lucide-react';
+import Picker from '@emoji-mart/react';
+import data from '@emoji-mart/data';
 import type { Habit } from '../../api/habits';
 
 const COLORS = ['#6366f1', '#ec4899', '#f59e0b', '#10b981', '#3b82f6', '#ef4444', '#8b5cf6', '#06b6d4'];
-const ICONS = ['⭐', '💪', '🏃', '📚', '🧘', '💧', '🥗', '😴', '🎯', '🧠', '✍️', '🎵', '🌱', '❤️'];
 
 interface HabitFormProps {
   habit?: Habit;
@@ -16,6 +17,19 @@ export function HabitForm({ habit, onSave, onClose }: HabitFormProps) {
   const [color, setColor] = useState(habit?.color ?? '#6366f1');
   const [icon, setIcon] = useState(habit?.icon ?? '⭐');
   const [saving, setSaving] = useState(false);
+  const [pickerOpen, setPickerOpen] = useState(false);
+  const pickerRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!pickerOpen) return;
+    function handleClick(e: MouseEvent) {
+      if (pickerRef.current && !pickerRef.current.contains(e.target as Node)) {
+        setPickerOpen(false);
+      }
+    }
+    document.addEventListener('mousedown', handleClick);
+    return () => document.removeEventListener('mousedown', handleClick);
+  }, [pickerOpen]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -57,21 +71,28 @@ export function HabitForm({ habit, onSave, onClose }: HabitFormProps) {
 
           <div>
             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Icon</label>
-            <div className="flex flex-wrap gap-2">
-              {ICONS.map((i) => (
-                <button
-                  key={i}
-                  type="button"
-                  onClick={() => setIcon(i)}
-                  className={`w-10 h-10 text-xl rounded-lg border-2 flex items-center justify-center transition-colors ${
-                    icon === i
-                      ? 'border-indigo-500 bg-indigo-50 dark:bg-indigo-900/50'
-                      : 'border-gray-200 dark:border-gray-600 hover:border-gray-300 dark:hover:border-gray-500'
-                  }`}
-                >
-                  {i}
-                </button>
-              ))}
+            <div className="relative" ref={pickerRef}>
+              <button
+                type="button"
+                onClick={() => setPickerOpen((o) => !o)}
+                className="w-12 h-12 text-2xl rounded-xl border-2 border-gray-200 dark:border-gray-600 hover:border-indigo-400 flex items-center justify-center transition-colors"
+              >
+                {icon}
+              </button>
+              {pickerOpen && (
+                <div className="absolute top-14 left-0 z-10">
+                  <Picker
+                    data={data}
+                    onEmojiSelect={(e: { native: string }) => {
+                      setIcon(e.native);
+                      setPickerOpen(false);
+                    }}
+                    theme="auto"
+                    previewPosition="none"
+                    skinTonePosition="none"
+                  />
+                </div>
+              )}
             </div>
           </div>
 
