@@ -51,6 +51,9 @@ export const habitsApi = {
     return apiClient.get<Completion[]>(`/habits/${habitId}/history`, { params }).then((r) => r.data);
   },
 
+  reorder: (habitIds: string[]) =>
+    apiClient.put('/habits/reorder', { habitIds }),
+
   getDayCompletions: (date: string) =>
     apiClient.get<Completion[]>('/completions', { params: { date } }).then((r) => r.data),
 

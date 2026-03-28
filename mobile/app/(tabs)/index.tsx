@@ -10,10 +10,10 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { format } from 'date-fns';
-import { Plus } from 'lucide-react-native';
+import { ChevronUp, ChevronDown } from 'lucide-react-native';
 import { useQueryClient } from '@tanstack/react-query';
-import { habitsApi } from '../../src/api/habits';
-import { logsApi } from '../../src/api/logs';
+import { habitsApi, type Habit } from '../../src/api/habits';
+import { logsApi, type Log } from '../../src/api/logs';
 import { useHabits, useTodayCompletions } from '../../src/hooks/useHabits';
 import { useLogs, useDayLogEntries } from '../../src/hooks/useLogs';
 import { queryKeys } from '../../src/lib/queryKeys';
@@ -30,14 +30,38 @@ const today = format(new Date(), 'yyyy-MM-dd');
 export default function TodayScreen() {
   const queryClient = useQueryClient();
   const { isDark } = useTheme();
-  const { habits, loading: habitsLoading } = useHabits();
+  const { habits, loading: habitsLoading, setHabits } = useHabits();
   const { completions, setCompletions } = useTodayCompletions(today);
-  const { logs, loading: logsLoading } = useLogs();
+  const { logs, loading: logsLoading, setLogs } = useLogs();
   const { entries } = useDayLogEntries(today);
 
   const [showHabitForm, setShowHabitForm] = useState(false);
   const [showLogForm, setShowLogForm] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
+  const [reorderingHabits, setReorderingHabits] = useState(false);
+  const [reorderingLogs, setReorderingLogs] = useState(false);
+
+  const moveHabit = (index: number, direction: -1 | 1) => {
+    const newIndex = index + direction;
+    if (newIndex < 0 || newIndex >= habits.length) return;
+    setHabits((prev: Habit[]) => {
+      const next = [...prev];
+      [next[index], next[newIndex]] = [next[newIndex], next[index]];
+      habitsApi.reorder(next.map((h) => h.habitId)).catch(console.error);
+      return next;
+    });
+  };
+
+  const moveLog = (index: number, direction: -1 | 1) => {
+    const newIndex = index + direction;
+    if (newIndex < 0 || newIndex >= logs.length) return;
+    setLogs((prev: Log[]) => {
+      const next = [...prev];
+      [next[index], next[newIndex]] = [next[newIndex], next[index]];
+      logsApi.reorder(next.map((l) => l.logId)).catch(console.error);
+      return next;
+    });
+  };
 
   const completedCount = habits.filter((h) =>
     completions.some((c) => c.habitId === h.habitId)
@@ -104,6 +128,9 @@ export default function TodayScreen() {
           title="Habits"
           actionLabel="Add"
           onAction={() => setShowHabitForm(true)}
+          secondActionLabel={reorderingHabits ? 'Done' : 'Reorder'}
+          onSecondAction={habits.length > 1 ? () => setReorderingHabits((v) => !v) : undefined}
+          secondActionActive={reorderingHabits}
         />
         {habitsLoading ? (
           <ActivityIndicator color="#6366f1" style={styles.loader} />
@@ -116,13 +143,36 @@ export default function TodayScreen() {
             <Text style={styles.emptyAction}>+ Add your first habit</Text>
           </Pressable>
         ) : (
-          habits.map((habit) => (
-            <HabitCard
-              key={habit.habitId}
-              habit={habit}
-              completion={completions.find((c) => c.habitId === habit.habitId)}
-              onToggle={handleToggle}
-            />
+          habits.map((habit, index) => (
+            <View key={habit.habitId} style={reorderingHabits ? styles.reorderRow : undefined}>
+              {reorderingHabits && (
+                <View style={styles.reorderButtons}>
+                  <Pressable
+                    onPress={() => moveHabit(index, -1)}
+                    disabled={index === 0}
+                    style={[styles.reorderBtn, { opacity: index === 0 ? 0.3 : 1 }]}
+                    hitSlop={6}
+                  >
+                    <ChevronUp size={18} color={isDark ? '#9ca3af' : '#6b7280'} />
+                  </Pressable>
+                  <Pressable
+                    onPress={() => moveHabit(index, 1)}
+                    disabled={index === habits.length - 1}
+                    style={[styles.reorderBtn, { opacity: index === habits.length - 1 ? 0.3 : 1 }]}
+                    hitSlop={6}
+                  >
+                    <ChevronDown size={18} color={isDark ? '#9ca3af' : '#6b7280'} />
+                  </Pressable>
+                </View>
+              )}
+              <View style={reorderingHabits ? styles.reorderCardFlex : undefined}>
+                <HabitCard
+                  habit={habit}
+                  completion={completions.find((c) => c.habitId === habit.habitId)}
+                  onToggle={handleToggle}
+                />
+              </View>
+            </View>
           ))
         )}
 
@@ -132,6 +182,9 @@ export default function TodayScreen() {
             title="Logs"
             actionLabel="Add"
             onAction={() => setShowLogForm(true)}
+            secondActionLabel={reorderingLogs ? 'Done' : 'Reorder'}
+            onSecondAction={logs.length > 1 ? () => setReorderingLogs((v) => !v) : undefined}
+            secondActionActive={reorderingLogs}
           />
           {logsLoading ? (
             <ActivityIndicator color="#6366f1" style={styles.loader} />
@@ -144,13 +197,36 @@ export default function TodayScreen() {
               <Text style={styles.emptyAction}>+ Add your first log</Text>
             </Pressable>
           ) : (
-            logs.map((log) => (
-              <LogEntryCard
-                key={log.logId}
-                log={log}
-                entry={entries.find((e) => e.logId === log.logId)}
-                date={today}
-              />
+            logs.map((log, index) => (
+              <View key={log.logId} style={reorderingLogs ? styles.reorderRow : undefined}>
+                {reorderingLogs && (
+                  <View style={styles.reorderButtons}>
+                    <Pressable
+                      onPress={() => moveLog(index, -1)}
+                      disabled={index === 0}
+                      style={[styles.reorderBtn, { opacity: index === 0 ? 0.3 : 1 }]}
+                      hitSlop={6}
+                    >
+                      <ChevronUp size={18} color={isDark ? '#9ca3af' : '#6b7280'} />
+                    </Pressable>
+                    <Pressable
+                      onPress={() => moveLog(index, 1)}
+                      disabled={index === logs.length - 1}
+                      style={[styles.reorderBtn, { opacity: index === logs.length - 1 ? 0.3 : 1 }]}
+                      hitSlop={6}
+                    >
+                      <ChevronDown size={18} color={isDark ? '#9ca3af' : '#6b7280'} />
+                    </Pressable>
+                  </View>
+                )}
+                <View style={reorderingLogs ? styles.reorderCardFlex : undefined}>
+                  <LogEntryCard
+                    log={log}
+                    entry={entries.find((e) => e.logId === log.logId)}
+                    date={today}
+                  />
+                </View>
+              </View>
             ))
           )}
         </View>
@@ -201,4 +277,8 @@ const styles = StyleSheet.create({
   emptyAction: { color: '#6366f1', fontSize: 14, fontWeight: '500' },
   logsSection: { marginTop: 16 },
   spacer: { height: 24 },
+  reorderRow: { flexDirection: 'row', alignItems: 'center', gap: 8 },
+  reorderButtons: { flexDirection: 'column', alignItems: 'center', gap: 2 },
+  reorderBtn: { padding: 2 },
+  reorderCardFlex: { flex: 1 },
 });

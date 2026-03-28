@@ -44,6 +44,9 @@ export const logsApi = {
     return apiClient.get<LogEntry[]>(`/logs/${logId}/entries`, { params }).then((r) => r.data);
   },
 
+  reorder: (logIds: string[]) =>
+    apiClient.put('/logs/reorder', { logIds }),
+
   getDayEntries: (date: string) =>
     apiClient.get<LogEntry[]>('/log-entries', { params: { date } }).then((r) => r.data),
 
